@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Liga Madeira | Acesso à Plataforma</title>
+  <meta name="description" content="Faça login ou cadastre-se na Liga Madeira — plataforma premium de marceneiros e fornecedores."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="auth.css"/>
+</head>
+<body class="auth-body">
+
+  <!-- Animated Background -->
+  <div class="auth-bg"></div>
+  <div class="particles-layer" id="particles-layer"></div>
+
+  <!-- Toast -->
+  <div class="auth-toast" id="auth-toast">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="auth-toast-msg">Mensagem</span>
+  </div>
+
+  <!-- OTP Verification Overlay -->
+  <div class="otp-overlay" id="otp-overlay">
+    <div class="otp-card">
+      <div class="otp-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,4 12,13 2,4"/></svg>
+      </div>
+      <h3>Verifique seu E-mail</h3>
+      <p>Enviamos um código de 6 dígitos para <strong id="otp-email-label">seu e-mail</strong>. Digite abaixo para confirmar sua conta.</p>
+      <div class="otp-inputs" id="otp-inputs">
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" id="otp-0" oninput="otpInput(0)" onkeydown="otpKeydown(0, event)"/>
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" id="otp-1" oninput="otpInput(1)" onkeydown="otpKeydown(1, event)"/>
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" id="otp-2" oninput="otpInput(2)" onkeydown="otpKeydown(2, event)"/>
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" id="otp-3" oninput="otpInput(3)" onkeydown="otpKeydown(3, event)"/>
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" id="otp-4" oninput="otpInput(4)" onkeydown="otpKeydown(4, event)"/>
+        <input class="otp-digit" maxlength="1" type="text" inputmode="numeric" id="otp-5" oninput="otpInput(5)" onkeydown="otpKeydown(5, event)"/>
+      </div>
+      <p class="otp-resend">Não recebeu? <button onclick="resendOTP()">Reenviar código</button></p>
+      <button class="btn-auth-primary" id="otp-confirm-btn" onclick="confirmOTP()">Confirmar Código</button>
+    </div>
+  </div>
+
+  <!-- Google Auth Modal -->
+  <div class="google-modal-overlay" id="google-modal">
+    <div class="google-modal">
+      <div class="google-logo">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        <span>Google</span>
+      </div>
+      <h3>Fazer login com Google</h3>
+      <p class="sub">Escolha uma conta para continuar na Liga Madeira</p>
+      <div class="google-account-card" onclick="confirmGoogleLogin()">
+        <div class="google-avatar" id="google-avatar-initial">J</div>
+        <div class="google-account-info">
+          <strong id="google-account-name">Joao Henrique</strong>
+          <span id="google-account-email">joaohenrique@gmail.com</span>
+        </div>
+        <svg style="width:18px;height:18px;margin-left:auto;stroke:#5f6368;fill:none;stroke-width:2;" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <button class="google-btn-confirm" onclick="confirmGoogleLogin()">Continuar</button>
+      <button class="google-btn-cancel" onclick="closeGoogleModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Main Auth Container -->
+  <div class="auth-container">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="logo-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M12 2L3 7l9 5 9-5-9-5z" stroke-width="1.5"/><path d="M3 12l9 5 9-5" stroke-width="1.5"/><path d="M3 17l9 5 9-5" stroke-width="1.5"/></svg>
+      </div>
+      <h1>Liga Madeira</h1>
+      <p>Plataforma Premium de Fornecedores</p>
+    </div>
+
+    <!-- Glass Card -->
+    <div class="auth-card">
+
+      <!-- Tab Navigation -->
+      <div class="auth-tabs" id="auth-tabs">
+        <button class="auth-tab-btn active" id="tab-login"    onclick="switchTab('login')">Entrar</button>
+        <button class="auth-tab-btn"        id="tab-register" onclick="switchTab('register')">Cadastrar</button>
+        <button class="auth-tab-btn"        id="tab-recover"  onclick="switchTab('recover')">Recuperar Senha</button>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           PAINEL: LOGIN
+           ═══════════════════════════════════════ -->
+      <div class="auth-panel active" id="panel-login">
+        <form onsubmit="handleLogin(event)" novalidate>
+
+          <div class="form-group">
+            <label for="login-email">E-mail</label>
+            <div class="input-wrap">
+              <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" required/>
+              <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,4 12,13 2,4"/></svg>
+            </div>
+            <span class="field-error" id="login-email-err">E-mail inválido.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="login-password">Senha</label>
+            <div class="input-wrap">
+              <input type="password" id="login-password" placeholder="Sua senha" class="has-toggle" autocomplete="current-password" required/>
+              <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <button type="button" class="toggle-pass" onclick="togglePassword('login-password', this)">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <span class="field-error" id="login-pass-err">Senha incorreta.</span>
+          </div>
+
+          <button type="button" class="forgot-link" onclick="switchTab('recover')">Esqueci minha senha</button>
+
+          <button type="submit" class="btn-auth-primary" id="login-btn">
+            <span id="login-btn-text">Entrar na Plataforma</span>
+          </button>
+        </form>
+
+        <div class="auth-divider"><span>ou continue com</span></div>
+
+        <div class="social-btns">
+          <button class="btn-auth-outline" onclick="loginWithGoogle()">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Continuar com Google
+          </button>
+          <button class="btn-auth-outline whatsapp" onclick="loginWithWhatsApp()">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="#25D366"/>
+              <path d="M12 2C6.477 2 2 6.477 2 12c0 1.936.551 3.741 1.502 5.273L2 22l4.86-1.476A9.953 9.953 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18a7.96 7.96 0 01-4.273-1.237l-.306-.181-3.178.966.984-3.094-.199-.317A7.96 7.96 0 014 12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 8z" fill="#25D366"/>
+            </svg>
+            Continuar com WhatsApp
+          </button>
+        </div>
+
+        <div class="auth-links">
+          Não tem conta? <button onclick="switchTab('register')">Criar conta gratuita</button>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           PAINEL: CADASTRO
+           ═══════════════════════════════════════ -->
+      <div class="auth-panel" id="panel-register">
+        <form onsubmit="handleRegister(event)" novalidate id="register-form">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="reg-name">Nome Completo</label>
+              <div class="input-wrap">
+                <input type="text" id="reg-name" placeholder="Seu nome" required/>
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <span class="field-error" id="reg-name-err">Nome obrigatório.</span>
+            </div>
+            <div class="form-group">
+              <label for="reg-phone">Telefone / WhatsApp</label>
+              <div class="input-wrap">
+                <input type="tel" id="reg-phone" placeholder="(11) 99999-9999" required/>
+                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.27-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reg-email">E-mail</label>
+            <div class="input-wrap">
+              <input type="email" id="reg-email" placeholder="seu@email.com" required/>
+              <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,4 12,13 2,4"/></svg>
+            </div>
+            <span class="field-error" id="reg-email-err">E-mail inválido ou já cadastrado.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="reg-profile">Perfil de Acesso</label>
+            <div class="input-wrap">
+              <select id="reg-profile" required>
+                <option value="">Selecione seu perfil...</option>
+                <option value="marceneiro">Marceneiro / Artesão</option>
+                <option value="revendedor">Revendedor</option>
+                <option value="cliente">Cliente Final</option>
+                <option value="fabricante">Fabricante / Fornecedor</option>
+              </select>
+              <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+            </div>
+            <span class="field-error" id="reg-profile-err">Selecione um perfil.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="reg-password">Senha</label>
+            <div class="input-wrap">
+              <input type="password" id="reg-password" placeholder="Crie uma senha forte" class="has-toggle" oninput="checkPasswordStrength(this.value)" required/>
+              <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <button type="button" class="toggle-pass" onclick="togglePassword('reg-password', this)">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="pw-strength">
+              <div class="pw-bar" id="pw-bar-1"></div>
+              <div class="pw-bar" id="pw-bar-2"></div>
+              <div class="pw-bar" id="pw-bar-3"></div>
+              <span class="pw-label" id="pw-label">—</span>
+            </div>
+            <span class="field-error" id="reg-pass-err">Mínimo 8 caracteres.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="reg-confirm-password">Confirmar Senha</label>
+            <div class="input-wrap">
+              <input type="password" id="reg-confirm-password" placeholder="Repita a senha" class="has-toggle" required/>
+              <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <button type="button" class="toggle-pass" onclick="togglePassword('reg-confirm-password', this)">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <span class="field-error" id="reg-confirm-err">As senhas não coincidem.</span>
+          </div>
+
+          <div class="checkbox-row">
+            <input type="checkbox" id="reg-terms" required/>
+            <label for="reg-terms">Concordo com os <a href="#" onclick="return false;">Termos de Uso</a> e <a href="#" onclick="return false;">Política de Privacidade</a></label>
+          </div>
+          <span class="field-error" id="reg-terms-err" style="display:block;margin-top:-12px;margin-bottom:14px;">Aceite os termos para continuar.</span>
+
+          <button type="submit" class="btn-auth-primary" id="register-btn">
+            <span id="register-btn-text">Criar Minha Conta</span>
+          </button>
+        </form>
+
+        <div class="auth-links">
+          Já tem conta? <button onclick="switchTab('login')">Fazer login</button>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════
+           PAINEL: RECUPERAR SENHA
+           ═══════════════════════════════════════ -->
+      <div class="auth-panel" id="panel-recover">
+
+        <!-- Step 1: Enter email -->
+        <div id="recover-step-1">
+          <p style="font-size:14px;color:var(--wood-light);margin-bottom:22px;line-height:1.6;">
+            Informe o e-mail cadastrado. Enviaremos um código de verificação para redefinir sua senha.
+          </p>
+          <form onsubmit="handleRecoverSend(event)" novalidate>
+            <div class="form-group">
+              <label for="recover-email">E-mail Cadastrado</label>
+              <div class="input-wrap">
+                <input type="email" id="recover-email" placeholder="seu@email.com" required/>
+                <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,4 12,13 2,4"/></svg>
+              </div>
+              <span class="field-error" id="recover-email-err">E-mail não encontrado no sistema.</span>
+            </div>
+            <button type="submit" class="btn-auth-primary" id="recover-send-btn">
+              <span id="recover-btn-text">Enviar Código de Recuperação</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Step 2: New password -->
+        <div id="recover-step-2" style="display:none;">
+          <p style="font-size:14px;color:var(--wood-light);margin-bottom:22px;line-height:1.6;">
+            Código verificado! Defina sua nova senha abaixo.
+          </p>
+          <form onsubmit="handleRecoverReset(event)" novalidate>
+            <div class="form-group">
+              <label for="new-password">Nova Senha</label>
+              <div class="input-wrap">
+                <input type="password" id="new-password" placeholder="Nova senha forte" class="has-toggle" required/>
+                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <button type="button" class="toggle-pass" onclick="togglePassword('new-password', this)">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="new-password-confirm">Confirmar Nova Senha</label>
+              <div class="input-wrap">
+                <input type="password" id="new-password-confirm" placeholder="Repita a nova senha" class="has-toggle" required/>
+                <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <button type="button" class="toggle-pass" onclick="togglePassword('new-password-confirm', this)">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <span class="field-error" id="new-pass-confirm-err">As senhas não coincidem.</span>
+            </div>
+            <button type="submit" class="btn-auth-primary">Redefinir Senha</button>
+          </form>
+        </div>
+
+        <div class="auth-links">
+          Lembrou a senha? <button onclick="switchTab('login')">Fazer login</button>
+        </div>
+      </div>
+
+    </div><!-- /auth-card -->
+  </div><!-- /auth-container -->
+
+  <script src="auth.js"></script>
+</body>
+</html>
