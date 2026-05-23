@@ -163,7 +163,13 @@ let pieChartInstance = null;
 
 // Inicializador do DB
 function initDatabase() {
-  const stored = localStorage.getItem('liga_madeira_db');
+  let stored = null;
+  try {
+    stored = localStorage.getItem('liga_madeira_db');
+  } catch (e) {
+    console.warn("Acesso ao LocalStorage restrito. Usando fallback de memória.");
+  }
+
   if (stored) {
     try {
       db = JSON.parse(stored);
@@ -176,7 +182,7 @@ function initDatabase() {
       db = JSON.parse(JSON.stringify(INITIAL_DB));
     }
   } else {
-    db = JSON.parse(JSON.stringify(INITIAL_DB));
+    db = window._liga_madeira_db || JSON.parse(JSON.stringify(INITIAL_DB));
     saveToStorage();
   }
 
@@ -203,7 +209,12 @@ function initDatabase() {
 }
 
 function saveToStorage() {
-  localStorage.setItem('liga_madeira_db', JSON.stringify(db));
+  try {
+    localStorage.setItem('liga_madeira_db', JSON.stringify(db));
+  } catch (e) {
+    console.warn("Não foi possível salvar no LocalStorage. Usando fallback de memória.", e);
+  }
+  window._liga_madeira_db = db;
 }
 
 function resetDatabase() {
