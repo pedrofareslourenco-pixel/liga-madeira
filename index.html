@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Liga Madeira | Conectando Confiança Através da Madeira</title>
+  <meta name="description" content="A Liga Madeira conecta clientes, marceneiros, fornecedores, fabricantes e revendedores em um ecossistema 100% funcional de alta performance e design premium." />
+  
+  <!-- Fontes do Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Biblioteca de Ícones Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Biblioteca Chart.js para Gráficos Interativos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Biblioteca jsPDF para Geração de PDFs Premium Reais -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Estilos Customizados -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Toast Notification System -->
+  <div id="toast-container"></div>
+
+  <!-- Role Selector/Header Bar -->
+  <header class="app-top-header">
+    <div class="header-logo">
+      <i data-lucide="trees" class="logo-tree-icon"></i>
+      <h1>LIGA MADEIRA</h1>
+    </div>
+    
+    <!-- Central Role Selector -->
+    <div class="role-switcher-container">
+      <span class="switcher-label"><i data-lucide="user-check"></i> Modo de Uso:</span>
+      <div class="role-pills">
+        <button class="role-pill active" onclick="switchRole('supplier')" id="btn-role-supplier">
+          <i data-lucide="sliders"></i> Super App Fornecedor
+        </button>
+        <button class="role-pill" onclick="switchRole('client')" id="btn-role-client">
+          <i data-lucide="shopping-bag"></i> Marketplace Cliente
+        </button>
+        <button class="role-pill" onclick="switchRole('reseller')" id="btn-role-reseller">
+          <i data-lucide="handshake"></i> Área Revendedor
+        </button>
+      </div>
+    </div>
+
+    <!-- Live clock and indicators -->
+    <div class="top-header-right">
+      <div class="status-badge online">
+        <span class="pulse-dot"></span>
+        <span>DB Conectado</span>
+      </div>
+      <div class="time-widget">
+        <i data-lucide="clock"></i>
+        <span id="live-time">Carregando...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="app-layout">
+    
+    <!-- ==============================================
+         SIDEBAR FOR SUPER APP FORNECEDOR
+         ============================================== -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-top-branding">
+        <div class="avatar-holder">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop" alt="Avatar Carlos Eduardo" class="provider-avatar" id="sidebar-avatar" />
+          <span class="badge-status-dot online"></span>
+        </div>
+        <div class="sidebar-user-details">
+          <h3 id="sidebar-user-name">Carlos Eduardo</h3>
+          <span class="sidebar-user-role">Marceneiro Master</span>
+          <div class="quality-badges-row" id="sidebar-badges-container">
+            <!-- Selos gerados dinamicamente por JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" onclick="navigate('candidatos', event)" id="nav-candidatos">
+          <i data-lucide="users"></i>
+          <span>Candidatos</span>
+        </a>
+        <a href="#" class="nav-item" onclick="navigate('venda-custo', event)" id="nav-venda-custo">
+          <i data-lucide="shopping-cart"></i>
+          <span>Venda e Custo</span>
+        </a>
+        <a href="#" class="nav-item" onclick="navigate('calendario', event)" id="nav-calendario">
+          <i data-lucide="calendar"></i>
+          <span>Calendário e Carga Horária</span>
+          <span class="alert-count-pill" id="schedule-alert-count">3</span>
+        </a>
+        <a href="#" class="nav-item" onclick="navigate('meus-produtos', event)" id="nav-meus-produtos">
+          <i data-lucide="package"></i>
+          <span>Meus Produtos</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Promo Widget -->
+      <div class="sidebar-promo-widget">
+        <div class="promo-header">
+          <i data-lucide="sparkles" class="text-orange anim-pulse"></i>
+          <span>IA Otimizadora</span>
+        </div>
+        <p>Sua agenda possui 3 compromissos hoje. Que tal otimizar rotas de entrega?</p>
+        <button class="btn-widget-action" onclick="optimizeAgendaRoute()">Otimizar Rota</button>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <span class="version-label">Liga Madeira v1.2</span>
+        <button class="btn-logout" onclick="resetDatabase()"><i data-lucide="refresh-cw"></i> Resetar Dados</button>
+      </div>
+    </aside>
+
+    <!-- ==============================================
+         MAIN BODY CONTENT
+         ============================================== -->
+    <main class="main-body" id="app-main-body">
+      
+      <!-- ==============================================
+           TELA 1: CANDIDATOS (Super App)
+           ============================================== -->
+      <section id="panel-candidatos" class="content-panel active">
+        <div class="panel-header-desc">
+          <div class="panel-header-title-row">
+            <h2>Selecione o Fornecedor Parceiro</h2>
+            <button class="btn btn-outline btn-sm" onclick="toggleReferenceOverlay('candidatos')">
+              <i data-lucide="image"></i> Ver Print de Referência
+            </button>
+          </div>
+          <p>Profissionais verificados, habilitados para co-criação de projetos residenciais e comerciais premium.</p>
+        </div>
+
+        <div class="suppliers-grid">
+          <!-- Card 1: Carlos Eduardo (Pre-selected) -->
+          <div class="supplier-card hover-lift" onclick="selectSupplier('carlos')">
+            <div class="card-image-wrap">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=350&auto=format&fit=crop" alt="Carlos Eduardo" />
+            </div>
+            <div class="supplier-card-footer">
+              <div class="supplier-card-meta">
+                <span class="supplier-initials">AV</span>
+                <div class="stars-row">
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                </div>
+              </div>
+              <p class="supplier-bio">
+                Profissional dedicado com experiência em vendas e gestão de custos. Focado em resultados e melhoria contínua.
+              </p>
+            </div>
+          </div>
+
+          <!-- Card 2: Roberto Silveira -->
+          <div class="supplier-card hover-lift" onclick="selectSupplier('roberto')">
+            <div class="card-image-wrap">
+              <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=350&auto=format&fit=crop" alt="Roberto Silveira" />
+            </div>
+            <div class="supplier-card-footer">
+              <div class="supplier-card-meta">
+                <span class="supplier-initials">AV</span>
+                <div class="stars-row">
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" stroke="#ff5a00" fill="none"></i>
+                </div>
+              </div>
+              <p class="supplier-bio">
+                Organizado e proativo, com facilidade em rotinas e controle de agenda. Busca eficiência no dia a dia.
+              </p>
+            </div>
+          </div>
+
+          <!-- Card 3: Mariana Albuquerque -->
+          <div class="supplier-card hover-lift" onclick="selectSupplier('mariana')">
+            <div class="card-image-wrap">
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=350&auto=format&fit=crop" alt="Mariana Albuquerque" />
+            </div>
+            <div class="supplier-card-footer">
+              <div class="supplier-card-meta">
+                <span class="supplier-initials">AV</span>
+                <div class="stars-row">
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  <i data-lucide="star" stroke="#ff5a00" fill="none"></i>
+                </div>
+              </div>
+              <p class="supplier-bio">
+                Atenta aos detalhes e com foco em qualidade. Trabalha bem com produtos e relacionamento com clientes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           TELA 2: PERFIL DO FORNECEDOR (Carlos Eduardo)
+           ============================================== -->
+      <section id="panel-perfil" class="content-panel">
+        <div class="profile-grid">
+          <!-- Coluna Esquerda: Foto, Avaliação, Selo de Confiança -->
+          <div class="profile-left-col">
+            <div class="profile-picture-container shadow-premium">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop" id="profile-picture" alt="Fornecedor Foto" />
+            </div>
+
+            <!-- Card de Avaliações (Rigoroso conforme a referência) -->
+            <div class="profile-card reviews-breakdown-card mt-20">
+              <h3>Avaliações</h3>
+              
+              <div class="reviews-list-rows">
+                <div class="review-row">
+                  <div class="stars-row">
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                  </div>
+                  <span class="review-note">5,0</span>
+                </div>
+                
+                <div class="review-row">
+                  <div class="stars-row">
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" stroke="#ff5a00" fill="none"></i>
+                  </div>
+                  <span class="review-note">4,0</span>
+                </div>
+
+                <div class="review-row">
+                  <div class="stars-row">
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" stroke="#ff5a00" fill="none"></i>
+                    <i data-lucide="star" stroke="#ff5a00" fill="none"></i>
+                  </div>
+                  <span class="review-note">3,0</span>
+                </div>
+
+                <div class="review-row">
+                  <div class="stars-row">
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" stroke="#ff5a00" fill="none"></i>
+                  </div>
+                  <span class="review-note">4,0</span>
+                </div>
+
+                <div class="review-row">
+                  <div class="stars-row">
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                    <i data-lucide="star" fill="#ff5a00" stroke="none" class="half-star-visual"></i>
+                  </div>
+                  <span class="review-note">4,5</span>
+                </div>
+              </div>
+
+              <!-- Badge Profissional Verificado -->
+              <div class="verified-badge-footer">
+                <i data-lucide="check-circle" class="check-icon-badge"></i>
+                <span>Profissional verificado</span>
+              </div>
+            </div>
+
+            <!-- Card de Conexão GitHub -->
+            <div class="profile-card github-integration-card mt-20">
+              <div class="card-header-icon-title">
+                <i data-lucide="github" class="text-orange"></i>
+                <h3>Conexão GitHub</h3>
+              </div>
+              <div id="github-connection-status" class="github-status-disconnected">
+                <p class="github-info-text">Vincule um repositório GitHub para expor seus projetos CAD, desenhos 3D e memorial técnico de fabricação diretamente no seu perfil.</p>
+                <div class="github-form-group">
+                  <input type="text" id="github-repo-url" class="form-control-custom" placeholder="usuario/repositorio" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--color-border); background-color: var(--color-white); color: var(--color-dark-brown); font-size: 13px; outline: none;" value="madeiramadeira/liga-madeira-designs" />
+                  <button class="btn btn-primary btn-sm mt-10" onclick="connectGitHubRepository()" style="width: 100%;">
+                    <i data-lucide="link"></i> Conectar Repositório
+                  </button>
+                </div>
+              </div>
+              <div id="github-connected-view" class="hidden">
+                <div class="github-repo-info">
+                  <div class="repo-header">
+                    <i data-lucide="folder-git-2" class="text-orange" style="width: 16px; height: 16px;"></i>
+                    <h4 id="github-connected-repo-name" style="font-size: 13px; font-weight: 800; color: var(--color-dark-brown); margin: 0;">usuario/repositorio</h4>
+                  </div>
+                  <p id="github-repo-desc" class="repo-desc" style="font-size: 11px; margin-top: 5px; margin-bottom: 8px;">Carregando...</p>
+                  <div class="repo-stats" style="display: flex; gap: 10px; font-size: 10px; font-weight: 700; color: var(--color-wood-medium);">
+                    <span><i data-lucide="star" style="width: 10px; height: 10px; vertical-align: middle;"></i> <span id="github-repo-stars">0</span></span>
+                    <span><i data-lucide="git-fork" style="width: 10px; height: 10px; vertical-align: middle;"></i> <span id="github-repo-forks">0</span></span>
+                  </div>
+                </div>
+                <div class="github-files-list">
+                  <h5>Arquivos CAD / Projetos:</h5>
+                  <ul id="github-repo-files" class="github-files-ul">
+                    <!-- Arquivos inseridos via JS -->
+                  </ul>
+                </div>
+                <button class="btn btn-outline btn-xs mt-15" onclick="disconnectGitHubRepository()" style="width: 100%;">
+                  <i data-lucide="unlink"></i> Desconectar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Nome, Descrição, Portfólio de Produtos -->
+          <div class="profile-right-col">
+            <div class="profile-name-banner">
+              <i data-lucide="user" class="banner-user-icon"></i>
+              <h2 id="profile-full-name">Carlos Eduardo</h2>
+              <button class="btn btn-primary btn-sm btn-ref-on-banner" onclick="toggleReferenceOverlay('perfil')">
+                <i data-lucide="image"></i> Ver Print de Referência
+              </button>
+            </div>
+
+            <!-- Card de Descrição -->
+            <div class="profile-card mt-15">
+              <div class="card-header-icon-title">
+                <i data-lucide="file-text"></i>
+                <h3>Descrição:</h3>
+              </div>
+              <p class="profile-description-paragraph" id="profile-bio-text">
+                Marceneiro experiente com mais de 12 anos de atuação no mercado, especializado em móveis planejados e soluções personalizadas em madeira. Comprometido com qualidade, acabamento impecável e satisfação do cliente. Atende projetos residenciais e comerciais, sempre com foco em funcionalidade, design e durabilidade.
+              </p>
+            </div>
+
+            <!-- Card de Portfólio de Produtos (Da esquerda para a direita obrigatoriamente) -->
+            <div class="profile-card mt-20">
+              <div class="card-header-icon-title">
+                <i data-lucide="package"></i>
+                <h3>Produtos do fornecedor:</h3>
+              </div>
+              
+              <!-- Fileira horizontal de portfólio -->
+              <div class="portfolio-horizontal-scroll">
+                <div class="portfolio-item-card" onclick="viewProductDetails('mesa')">
+                  <img src="https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=200&auto=format&fit=crop" alt="Mesas de Madeira" />
+                  <h4>Mesas de Madeira</h4>
+                  <p>Mesas sob medida em diversos estilos e acabamentos.</p>
+                </div>
+
+                <div class="portfolio-item-card" onclick="viewProductDetails('cozinha')">
+                  <img src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=200&auto=format&fit=crop" alt="Móveis Planejados" />
+                  <h4>Móveis Planejados</h4>
+                  <p>Cozinhas, quartos e escritórios planejados com alto padrão.</p>
+                </div>
+
+                <div class="portfolio-item-card" onclick="viewProductDetails('armario')">
+                  <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=200&auto=format&fit=crop" alt="Guarda-Roupas" />
+                  <h4>Guarda-Roupas</h4>
+                  <p>Guarda-roupas personalizados com ótimo aproveitamento de espaço.</p>
+                </div>
+
+                <div class="portfolio-item-card" onclick="viewProductDetails('paineis')">
+                  <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=200&auto=format&fit=crop" alt="Painéis e Racks" />
+                  <h4>Painéis e Racks</h4>
+                  <p>Painéis para TV e racks para salas modernas e elegantes.</p>
+                </div>
+
+                <div class="portfolio-item-card" onclick="viewProductDetails('estante')">
+                  <img src="https://images.unsplash.com/photo-1544644181-1484b3fdfc62?q=80&w=200&auto=format&fit=crop" alt="Estantes e Nichos" />
+                  <h4>Estantes e Nichos</h4>
+                  <p>Estantes e nichos funcionais para qualquer ambiente.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interações do Cliente no Perfil (Garante a Funcionalidade Real) -->
+            <div class="profile-actions-bar mt-20">
+              <button class="btn btn-primary" onclick="openDirectScheduling()"><i data-lucide="calendar"></i> Agendar Visita Técnica</button>
+              <button class="btn btn-outline" onclick="openDirectQuoteModal()"><i data-lucide="file-spreadsheet"></i> Solicitar Orçamento IA</button>
+              <button class="btn btn-outline" onclick="openDirectChat()"><i data-lucide="message-square"></i> Abrir Chat em Tempo Real</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           TELA 3: VENDA E CUSTO (Gráficos Dinâmicos)
+           ============================================== -->
+      <section id="panel-venda-custo" class="content-panel">
+        
+        <!-- Formulário de Lançamento Financeiro Integrado -->
+        <div class="finance-actions-top-bar">
+          <h3>Gestão de Vendas, Custos e fluxo de caixa</h3>
+          <div class="finance-btn-group">
+            <button class="btn btn-outline btn-sm" onclick="toggleReferenceOverlay('venda-custo')">
+              <i data-lucide="image"></i> Ver Print de Referência
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="exportFinancialReport()"><i data-lucide="download"></i> Exportar Extrato CSV</button>
+            <button class="btn btn-primary" onclick="toggleNewRecordModal()"><i data-lucide="plus-circle"></i> Novo Lançamento</button>
+          </div>
+        </div>
+
+        <div class="finance-grid">
+          <!-- Grafico de Vendas (Esquerda) -->
+          <div class="chart-card">
+            <div class="chart-title-wrap">
+              <h4>Vendas</h4>
+              <span class="chart-subtitle-growth text-green"><i data-lucide="trending-up"></i> +28% de alta</span>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="salesBarChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Grafico de Custos (Direita) -->
+          <div class="chart-card">
+            <div class="chart-title-wrap">
+              <h4>Custos</h4>
+              <span class="chart-subtitle-growth text-brown"><i data-lucide="trending-down"></i> -15% redução</span>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="costsBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel Inferior: Pizza de Distribuição de Custos vs Lucro -->
+        <div class="chart-card-full mt-20">
+          <div class="pie-distribution-grid">
+            <div class="pie-chart-col">
+              <div class="pie-canvas-holder">
+                <canvas id="profitDistributionPieChart"></canvas>
+              </div>
+            </div>
+            <div class="pie-details-col">
+              <div class="legend-row">
+                <div class="legend-color-box bg-dark-brown"></div>
+                <div class="legend-text-info">
+                  <h4>percentual de gastos e custos</h4>
+                  <p>Total de custos em relação ao faturamento acumulado.</p>
+                </div>
+                <span class="legend-percentage-big" id="percent-costs-label">35%</span>
+              </div>
+
+              <div class="legend-row mt-20">
+                <div class="legend-color-box bg-vibrant-orange"></div>
+                <div class="legend-text-info">
+                  <h4>percentual de lucros e vendas</h4>
+                  <p>Total de lucros em relação ao faturamento acumulado.</p>
+                </div>
+                <span class="legend-percentage-big" id="percent-profit-label">65%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           TELA 4: CALENDÁRIO E CARGA HORÁRIA
+           ============================================== -->
+      <section id="panel-calendario" class="content-panel">
+        <div class="panel-header-desc">
+          <div class="panel-header-title-row">
+            <h2>Calendário & Compromissos</h2>
+            <button class="btn btn-outline btn-sm" onclick="toggleReferenceOverlay('calendario')">
+              <i data-lucide="image"></i> Ver Print de Referência
+            </button>
+          </div>
+          <p>Gerencie compromissos técnicos e visualize a conformidade da sua carga horária operacional.</p>
+        </div>
+        <div class="scheduling-grid">
+          
+          <!-- Compromissos (Esquerda) -->
+          <div class="commitments-card">
+            <div class="card-header-icon-title border-b">
+              <i data-lucide="clipboard-list" class="text-orange"></i>
+              <h3>Compromissos</h3>
+            </div>
+            
+            <div class="commitments-timeline" id="timeline-commitments-list">
+              <!-- Gerado dinamicamente -->
+            </div>
+          </div>
+
+          <!-- Calendário Mensal (Direita) -->
+          <div class="calendar-widget-card">
+            <div class="calendar-header-navigation">
+              <button class="btn-cal-nav" onclick="changeMonth(-1)"><i data-lucide="chevron-left"></i></button>
+              <h3 id="calendar-current-month-lbl">Maio 2026</h3>
+              <button class="btn-cal-nav" onclick="changeMonth(1)"><i data-lucide="chevron-right"></i></button>
+            </div>
+            
+            <div class="calendar-grid-wrapper">
+              <!-- Week days header -->
+              <div class="calendar-week-days">
+                <span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span><span>DOM</span>
+              </div>
+              <!-- Days grid -->
+              <div class="calendar-days-grid" id="calendar-days-container">
+                <!-- Gerado dinamicamente por JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Painel Inferior: Carga Horária e Metas (Exato conforme referência) -->
+        <div class="hours-health-footer shadow-premium mt-20">
+          <div class="hours-health-left">
+            <div class="shield-badge-icon">
+              <i data-lucide="shield-check" class="shield-icon"></i>
+            </div>
+            <div class="hours-health-text">
+              <h3>Sua Carga horaria está Saudável!</h3>
+              <p>Otimização de tempo garantindo bem-estar e entregas perfeitas.</p>
+            </div>
+          </div>
+
+          <div class="hours-health-indicators">
+            <div class="health-indicator-box">
+              <i data-lucide="clock" class="text-orange"></i>
+              <div class="indicator-inner">
+                <span class="label">Compromissos agendados</span>
+                <span class="value" id="count-total-commitments">3</span>
+              </div>
+            </div>
+
+            <div class="health-indicator-box">
+              <i data-lucide="calendar-days" class="text-orange"></i>
+              <div class="indicator-inner">
+                <span class="label">Próximos 7 dias</span>
+                <span class="value" id="count-next-commitments">2</span>
+              </div>
+            </div>
+
+            <div class="health-indicator-box">
+              <i data-lucide="user-check" class="text-green"></i>
+              <div class="indicator-inner">
+                <span class="label">Carga horária organizada</span>
+                <span class="value green-check"><i data-lucide="check" stroke-width="3"></i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           TELA 5: MEUS PRODUTOS (Detalhe do Catálogo)
+           ============================================== -->
+      <section id="panel-meus-produtos" class="content-panel">
+        <div class="panel-header-desc">
+          <div class="panel-header-title-row">
+            <h2>Meus Produtos & Portfólio</h2>
+            <button class="btn btn-outline btn-sm" onclick="toggleReferenceOverlay('meus-produtos')">
+              <i data-lucide="image"></i> Ver Print de Referência
+            </button>
+          </div>
+          <p>Visualize especificações detalhadas de seus móveis sob medida e acompanhe pedidos vinculados.</p>
+        </div>
+        <div class="product-details-grid">
+          
+          <!-- Lado Esquerdo: Imagem, Caracaterísticas e Selos -->
+          <div class="product-left-display">
+            <div class="product-main-image shadow-premium">
+              <img src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=700" alt="Cozinha Planejada" id="product-display-image" />
+            </div>
+
+            <!-- Grade de Características (Premium com ícones de acabamento) -->
+            <div class="product-spec-badges-grid mt-20">
+              <div class="spec-badge-card">
+                <i data-lucide="layout-grid" class="text-orange"></i>
+                <h4>Móveis planejados</h4>
+                <p>100% sob medida</p>
+              </div>
+
+              <div class="spec-badge-card">
+                <i data-lucide="award" class="text-orange"></i>
+                <h4>Acabamento premium</h4>
+                <p>Alta durabilidade e resistência</p>
+              </div>
+
+              <div class="spec-badge-card">
+                <i data-lucide="lightbulb" class="text-orange"></i>
+                <h4>Iluminação LED</h4>
+                <p>Mais conforto e sofisticação</p>
+              </div>
+
+              <div class="spec-badge-card">
+                <i data-lucide="compass" class="text-orange"></i>
+                <h4>Design moderno</h4>
+                <p>Funcionalidade e elegância</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lado Direito: Preço de Mão de Obra, Detalhes e Pedidos Vinculados -->
+          <div class="product-right-display">
+            <div class="supplier-initials-row">
+              <span class="initials-badge">AV</span>
+              <div class="stars-row">
+                <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+                <i data-lucide="star" fill="#ff5a00" stroke="none"></i>
+              </div>
+            </div>
+
+            <!-- Card de Descrição do Produto -->
+            <div class="product-info-card mt-15">
+              <h3>Descrição do produto:</h3>
+              <p id="product-detail-description">
+                Cozinha planejada moderna com design minimalista e acabamento premium. Projeto desenvolvido para oferecer funcionalidade, organização e sofisticação, com aproveitamento inteligente de espaço e materiais de alta qualidade.
+              </p>
+            </div>
+
+            <!-- Bloco de Preço -->
+            <div class="product-price-orange-badge mt-20 shadow-premium">
+              <div class="price-left">
+                <i data-lucide="wallet" class="wallet-icon-price"></i>
+                <span>Preço de mão de obra</span>
+              </div>
+              <h2 id="product-detail-price">R$ 20.000</h2>
+            </div>
+
+            <!-- Grade de Pedidos Relacionados a este produto (Rigoroso com a referência) -->
+            <div class="orders-associated-card mt-25">
+              <h3>pedidos:</h3>
+              
+              <div class="orders-flow-list" id="product-associated-orders">
+                <!-- Pedido 1: Laura -->
+                <div class="associated-order-row">
+                  <div class="order-avatar-circle">
+                    <i data-lucide="calendar"></i>
+                  </div>
+                  <div class="order-desc-text">
+                    <p><strong>Laura</strong> fez um pedido para o dia 24.</p>
+                  </div>
+                </div>
+
+                <!-- Pedido 2: Paulo -->
+                <div class="associated-order-row mt-15">
+                  <div class="order-avatar-circle">
+                    <i data-lucide="calendar"></i>
+                  </div>
+                  <div class="order-desc-text">
+                    <p><strong>Paulo</strong> fez um pedido para o dia 30.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="product-actions mt-20">
+              <button class="btn btn-outline" onclick="openNewProductForm()"><i data-lucide="plus"></i> Cadastrar Outro Produto</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           VISTA ADICIONAL: MARKETPLACE DO CLIENTE (Home Inteligente)
+           ============================================== -->
+      <section id="panel-marketplace-client" class="content-panel">
+        <div class="marketplace-hero shadow-premium">
+          <div class="hero-overlay"></div>
+          <div class="hero-content">
+            <span class="hero-badge"><i data-lucide="sparkles"></i> Conexão Direta de Fábrica</span>
+            <h2>Seu Lar Decorado com Confiança</h2>
+            <p>Conectamos você aos marceneiros premium da MadeiraMadeira. Projetos 100% sob medida com entrega e qualidade garantidas.</p>
+            
+            <!-- Busca Inteligente Funcional -->
+            <div class="search-bar-functional shadow-premium">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" id="marketplace-search-input" placeholder="O que você está procurando? Ex: Cozinha Planejada, Mesa de Jatobá..." oninput="handleMarketplaceSearch()" />
+              <button class="btn btn-primary" onclick="executeMarketplaceSearch()">Pesquisar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner Rotativo de Ofertas e Novidades -->
+        <div class="banner-carousel-container mt-25 shadow-premium">
+          <div class="carousel-slide" id="carousel-slide-content">
+            <div class="carousel-text-col">
+              <span class="carousel-tag"><i data-lucide="percent"></i> Semana da Madeira Premium</span>
+              <h3>Desconto Exclusivo em Mão de Obra</h3>
+              <p>Feche seu projeto com Carlos Eduardo esta semana e ganhe 10% de desconto na antecipação!</p>
+              <button class="btn btn-primary btn-sm" onclick="selectSupplier('carlos')">Ver Portfólio do Carlos</button>
+            </div>
+            <div class="carousel-image-col">
+              <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=400" alt="Banner Madeira" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Fornecedores Recomendados / Selos de Qualidade -->
+        <div class="marketplace-suppliers-section mt-30">
+          <div class="section-title-row">
+            <h3>Fornecedores Recomendados & Habilitados</h3>
+            <span class="view-all-link" onclick="navigate('candidatos', event)">Ver todos <i data-lucide="chevron-right"></i></span>
+          </div>
+
+          <div class="suppliers-grid mt-15" id="marketplace-suppliers-grid">
+            <!-- Gerado dinamicamente -->
+          </div>
+        </div>
+
+        <!-- Selos de Qualidade Legenda -->
+        <div class="quality-legend-box mt-30">
+          <h3>Nosso Padrão de Excelência de Qualidade</h3>
+          <div class="quality-badges-legend-grid">
+            <div class="legend-badge-item">
+              <span class="seal-badge v-verified"><i data-lucide="shield-check"></i></span>
+              <div>
+                <h4>Qualidade Verificada</h4>
+                <p>Média de avaliações dos clientes acima de 4.8 estrelas.</p>
+              </div>
+            </div>
+            <div class="legend-badge-item">
+              <span class="seal-badge m-premium"><i data-lucide="trees"></i></span>
+              <div>
+                <h4>Madeira Premium</h4>
+                <p>Utilização rigorosa de madeira certificada e de alto padrão.</p>
+              </div>
+            </div>
+            <div class="legend-badge-item">
+              <span class="seal-badge e-guaranteed"><i data-lucide="truck"></i></span>
+              <div>
+                <h4>Entrega Garantida</h4>
+                <p>100% de pontualidade na entrega e montagem física final.</p>
+              </div>
+            </div>
+            <div class="legend-badge-item">
+              <span class="seal-badge p-sustainable"><i data-lucide="leaf"></i></span>
+              <div>
+                <h4>Produto Sustentável</h4>
+                <p>Matéria-prima de reflorestamento e insumos eco-friendly.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           VISTA ADICIONAL: ÁREA DE REVENDEDORES
+           ============================================== -->
+      <section id="panel-revendedor" class="content-panel">
+        <div class="panel-header-desc">
+          <h2>Painel de Controle do Revendedor</h2>
+          <p>Indique clientes para marceneiros credenciados, acompanhe suas comissões, gerencie carteiras e atinja metas mensais.</p>
+        </div>
+
+        <!-- Grid de Comissões e Carteira -->
+        <div class="reseller-dashboard-grid mt-20">
+          
+          <!-- Metas e Vendas -->
+          <div class="reseller-card commission-card shadow-premium">
+            <div class="card-glow-green"></div>
+            <div class="reseller-card-header">
+              <div>
+                <p class="subtitle">Comissão Acumulada para Resgate</p>
+                <h2 id="reseller-commissions-val">R$ 4.250,00</h2>
+              </div>
+              <div class="icon-box-reseller">
+                <i data-lucide="award"></i>
+              </div>
+            </div>
+            <div class="reseller-progress-meta mt-20">
+              <div class="meta-label-row">
+                <span>Meta Mensal de Vendas (R$ 100.000)</span>
+                <span id="reseller-sales-meta-percentage">68%</span>
+              </div>
+              <div class="meta-progress-track">
+                <div class="meta-progress-fill" style="width: 68%;" id="reseller-meta-progress-fill"></div>
+              </div>
+              <p class="meta-status-hint">Falta indicar apenas R$ 32.000 para atingir a meta e subir sua comissão para 8%!</p>
+            </div>
+            <div class="reseller-actions-row mt-20">
+              <button class="btn btn-primary btn-block" onclick="openIndicateLeadModal()"><i data-lucide="plus-circle"></i> Indicar Novo Cliente</button>
+            </div>
+          </div>
+
+          <!-- Estatísticas em cards -->
+          <div class="reseller-stats-grid">
+            <div class="stat-mini-card">
+              <span class="label">Minhas Indicações</span>
+              <h3 id="reseller-total-indications">12 Clientes</h3>
+              <p class="growth"><i data-lucide="trending-up"></i> +3 este mês</p>
+            </div>
+
+            <div class="stat-mini-card">
+              <span class="label">Projetos Fechados</span>
+              <h3 id="reseller-closed-deals">8 Projetos</h3>
+              <p class="growth"><i data-lucide="check"></i> 66% conversão</p>
+            </div>
+
+            <div class="stat-mini-card">
+              <span class="label">Volume Indicado</span>
+              <h3 id="reseller-sales-volume">R$ 68.000</h3>
+              <p class="growth"><i data-lucide="dollar-sign"></i> Ticket médio R$ 8,5k</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela de Carteira de Clientes / Leads CRM -->
+        <div class="chart-card-full mt-25">
+          <div class="card-header-icon-title border-b">
+            <i data-lucide="users" class="text-orange"></i>
+            <h3>Carteira de Clientes Indicados & Funil CRM</h3>
+          </div>
+          
+          <div class="table-responsive mt-15">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Data Indicação</th>
+                  <th>Marceneiro Indicado</th>
+                  <th>Valor Estimado</th>
+                  <th>Comissão (5%)</th>
+                  <th>Status do Funil</th>
+                  <th>Ação</th>
+                </tr>
+              </thead>
+              <tbody id="reseller-leads-table-body">
+                <!-- Gerado dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Ranking Regional de Desempenho (Rigoroso com a referência) -->
+        <div class="chart-card-full mt-25">
+          <div class="card-header-icon-title border-b">
+            <i data-lucide="trophy" class="text-orange"></i>
+            <h3>Ranking de Desempenho Regional de Revendedores</h3>
+          </div>
+
+          <div class="ranking-resellers-grid mt-15" id="reseller-ranking-container">
+            <!-- Gerado dinamicamente -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==============================================
+       INTEGRAÇÃO IA: CHATBOT DA SOFIA CONCIERGE & CRM
+       ============================================== -->
+  <button class="ai-floating-trigger" id="ai-chat-trigger" onclick="toggleAiChat()">
+    <i data-lucide="message-square" class="chat-trigger-icon"></i>
+    <span class="ai-glow-pulse"></span>
+    <span class="ai-badge-pulse-text">Sofia IA</span>
+  </button>
+
+  <div class="ai-chat-panel shadow-premium hidden" id="ai-chat-sidebar">
+    <div class="ai-chat-header">
+      <div class="ai-avatar-group">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150" alt="Sofia IA" class="ai-avatar-pic" />
+        <div class="ai-avatar-details">
+          <h4>Sofia Concierge</h4>
+          <span class="online-indicator"><span class="dot"></span> Online</span>
+        </div>
+      </div>
+      <button class="close-chat-btn" onclick="toggleAiChat()"><i data-lucide="x"></i></button>
+    </div>
+
+    <!-- Mensagens de Chat -->
+    <div class="ai-chat-messages" id="ai-messages-container">
+      <div class="ai-message assistant">
+        <p>Olá! Eu sou a <strong>Sofia</strong>, assistente de IA da Liga Madeira. Como posso ajudar você hoje?</p>
+        <p>Posso te ajudar a:</p>
+        <ul>
+          <li>Estimar custos de um móvel planejado (Gerador de Orçamentos)</li>
+          <li>Calcular previsão de vendas para sua marcenaria</li>
+          <li>Indicar os melhores marceneiros do ecossistema</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sugestões Rápidas -->
+    <div class="ai-chat-suggestions">
+      <button onclick="sendQuickAiQuery('Estimar orçamento de uma mesa de Jatobá')">Estimar Mesa</button>
+      <button onclick="sendQuickAiQuery('Como funciona a comissão de revendedor?')">Ver Comissão</button>
+      <button onclick="sendQuickAiQuery('Gerar previsão de vendas')">Previsão de Vendas</button>
+    </div>
+
+    <!-- Input Form -->
+    <div class="ai-chat-input-row">
+      <input type="text" id="ai-chat-input" placeholder="Pergunte algo à Sofia..." onkeydown="handleAiChatKey(event)" />
+      <button class="btn-send-chat" onclick="sendAiChatMessage()"><i data-lucide="send"></i></button>
+    </div>
+  </div>
+
+  <!-- ==============================================
+       MODAIS PREMIUM E POPUPS (100% OPERACIONAIS)
+       ============================================== -->
+
+  <!-- Modal 1: Novo Lançamento Financeiro -->
+  <div class="modal-backdrop hidden" id="modal-finance">
+    <div class="modal-content shadow-premium animate-fade-in">
+      <div class="modal-header">
+        <h3><i data-lucide="plus-circle" class="text-orange"></i> Novo Lançamento Financeiro</h3>
+        <button class="btn-close-modal" onclick="toggleNewRecordModal()"><i data-lucide="x"></i></button>
+      </div>
+      
+      <form id="form-new-finance" onsubmit="handleNewFinanceSubmit(event)">
+        <div class="form-group">
+          <label for="fin-type">Tipo de Lançamento</label>
+          <select id="fin-type" class="form-control" required onchange="handleFinTypeChange()">
+            <option value="venda">Venda / Faturamento (+)</option>
+            <option value="custo">Custo / Despesa (-)</option>
+          </select>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="fin-month">Mês de Lançamento</label>
+            <select id="fin-month" class="form-control" required>
+              <option value="Jan">Janeiro</option>
+              <option value="Fev">Fevereiro</option>
+              <option value="Mar">Março</option>
+              <option value="Abr">Abril</option>
+              <option value="Mai" selected>Maio</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="fin-value">Valor (R$)</label>
+            <input type="number" id="fin-value" class="form-control" min="1" placeholder="Ex: 5000" required />
+          </div>
+        </div>
+
+        <div class="form-group" id="group-rev-assoc">
+          <label for="fin-revendedor">Vincular Venda ao Revendedor (Opcional)</label>
+          <select id="fin-revendedor" class="form-control">
+            <option value="">Sem revendedor associado</option>
+            <option value="Joana">Joana D'Arc (Revendedora)</option>
+            <option value="Marcos">Marcos Silva (Revendedor)</option>
+            <option value="Patricia">Patrícia Lima (Revendedora)</option>
+          </select>
+        </div>
+
+        <div class="modal-actions-footer">
+          <button type="button" class="btn btn-outline" onclick="toggleNewRecordModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Registrar Lançamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Agendamento de Visita Técnica -->
+  <div class="modal-backdrop hidden" id="modal-scheduling">
+    <div class="modal-content shadow-premium animate-fade-in">
+      <div class="modal-header">
+        <h3><i data-lucide="calendar" class="text-orange"></i> Agendar Visita Técnica</h3>
+        <button class="btn-close-modal" onclick="closeSchedulingModal()"><i data-lucide="x"></i></button>
+      </div>
+
+      <form id="form-scheduling" onsubmit="handleSchedulingSubmit(event)">
+        <div class="form-group">
+          <label for="sched-client">Seu Nome / Nome do Cliente</label>
+          <input type="text" id="sched-client" class="form-control" placeholder="Ex: Roben, Laura, Paulo" required />
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="sched-date">Data da Visita</label>
+            <input type="date" id="sched-date" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="sched-time">Horário</label>
+            <input type="time" id="sched-time" class="form-control" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="sched-desc">Descrição / Anotações do Projeto</label>
+          <textarea id="sched-desc" class="form-control" rows="3" placeholder="Descreva o que deseja orçar (Ex: Cozinha planejada em MDF marrom)"></textarea>
+        </div>
+
+        <div class="modal-actions-footer">
+          <button type="button" class="btn btn-outline" onclick="closeSchedulingModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Agendar e Sincronizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Solicitar Orçamento Inteligente IA -->
+  <div class="modal-backdrop hidden" id="modal-quote">
+    <div class="modal-content shadow-premium animate-fade-in">
+      <div class="modal-header">
+        <h3><i data-lucide="cpu" class="text-orange"></i> Simulação de Orçamento por IA</h3>
+        <button class="btn-close-modal" onclick="closeQuoteModal()"><i data-lucide="x"></i></button>
+      </div>
+
+      <form id="form-quote" onsubmit="handleQuoteCalculator(event)">
+        <div class="form-group">
+          <label for="quote-wood">Tipo de Madeira / Insumo</label>
+          <select id="quote-wood" class="form-control">
+            <option value="MDF Amadeirado">MDF Planejado Premium (Marrom)</option>
+            <option value="Jatobá Maciço">Madeira Maciça Jatobá Nobre</option>
+            <option value="Compensado Naval">Compensado Naval (Alta Resistência)</option>
+            <option value="Pinus Ecológico">Pinus Tratado de Reflorestamento</option>
+          </select>
+        </div>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label for="quote-w">Largura (metros)</label>
+            <input type="number" step="0.1" id="quote-w" class="form-control" placeholder="Ex: 3.5" required />
+          </div>
+          <div class="form-group">
+            <label for="quote-h">Altura (metros)</label>
+            <input type="number" step="0.1" id="quote-h" class="form-control" placeholder="Ex: 2.2" required />
+          </div>
+          <div class="form-group">
+            <label for="quote-d">Profundidade (m)</label>
+            <input type="number" step="0.1" id="quote-d" class="form-control" placeholder="Ex: 0.6" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-container">
+            <input type="checkbox" id="quote-led" checked />
+            <span class="checkmark"></span> Incluir Fitas de Iluminação LED Embutidas
+          </label>
+          <label class="checkbox-container mt-10">
+            <input type="checkbox" id="quote-premium-finish" checked />
+            <span class="checkmark"></span> Ferragens com Amortecimento Premium (Anti-impacto)
+          </label>
+        </div>
+
+        <!-- Exibição de Resultados Inteligente -->
+        <div class="quote-result-card hidden" id="quote-result-display">
+          <h4><i data-lucide="check-square" class="text-green"></i> Estimativa Calculada Pela IA</h4>
+          <div class="result-pricing-breakdown">
+            <div class="price-row"><span>Custo de Materiais:</span><span id="res-wood-cost">R$ 0,00</span></div>
+            <div class="price-row"><span>Adicionais Premium:</span><span id="res-add-cost">R$ 0,00</span></div>
+            <div class="price-row"><span>Mão de obra sugerida:</span><span id="res-labor-cost">R$ 0,00</span></div>
+            <hr/>
+            <div class="price-row-total"><span>Preço Estimado Final:</span><span id="res-total-cost">R$ 0,00</span></div>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm btn-block mt-15" onclick="downloadQuotePDF()"><i data-lucide="download"></i> Baixar Memorial Descritivo (PDF)</button>
+        </div>
+
+        <div class="modal-actions-footer" id="quote-form-actions">
+          <button type="button" class="btn btn-outline" onclick="closeQuoteModal()">Fechar</button>
+          <button type="submit" class="btn btn-primary">Calcular com IA</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Indicação de Cliente (Revendedor) -->
+  <div class="modal-backdrop hidden" id="modal-indicate">
+    <div class="modal-content shadow-premium animate-fade-in">
+      <div class="modal-header">
+        <h3><i data-lucide="plus-circle" class="text-orange"></i> Indicar Cliente para a Liga</h3>
+        <button class="btn-close-modal" onclick="closeIndicateModal()"><i data-lucide="x"></i></button>
+      </div>
+
+      <form id="form-indicate-lead" onsubmit="handleIndicationSubmit(event)">
+        <div class="form-group">
+          <label for="lead-name">Nome Completo do Cliente</label>
+          <input type="text" id="lead-name" class="form-control" placeholder="Nome do cliente indicado" required />
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="lead-woodworker">Selecione o Marceneiro Indicado</label>
+            <select id="lead-woodworker" class="form-control" required>
+              <option value="carlos">Carlos Eduardo</option>
+              <option value="roberto">Roberto Silveira</option>
+              <option value="mariana">Mariana Albuquerque</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="lead-value">Valor Estimado do Projeto (R$)</label>
+            <input type="number" id="lead-value" class="form-control" placeholder="Ex: 20000" min="1000" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="lead-notes">Necessidades do Projeto</label>
+          <textarea id="lead-notes" class="form-control" rows="2" placeholder="Descreva brevemente o projeto (Ex: Guarda-roupa planejados no quarto principal)"></textarea>
+        </div>
+
+        <div class="modal-actions-footer">
+          <button type="button" class="btn btn-outline" onclick="closeIndicateModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Registrar Indicação</button>
+        </div>
+      </form>
+    </div>
+  <!-- Modal 5: Cadastrar Novo Produto -->
+  <div class="modal-backdrop hidden" id="modal-product">
+    <div class="modal-content shadow-premium animate-fade-in">
+      <div class="modal-header">
+        <h3><i data-lucide="package" class="text-orange"></i> Cadastrar Novo Produto</h3>
+        <button class="btn-close-modal" onclick="closeNewProductForm()"><i data-lucide="x"></i></button>
+      </div>
+
+      <form id="form-new-product" onsubmit="handleNewProductSubmit(event)">
+        <div class="form-group">
+          <label for="prod-title">Nome do Produto</label>
+          <input type="text" id="prod-title" class="form-control" placeholder="Ex: Cama de Casal Slim, Closet Laca" required />
+        </div>
+
+        <div class="form-group">
+          <label for="prod-desc">Descrição do Produto</label>
+          <textarea id="prod-desc" class="form-control" rows="3" placeholder="Descreva os materiais, estilo e detalhes técnicos..." required></textarea>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="prod-price">Preço da Mão de Obra (R$)</label>
+            <input type="number" id="prod-price" class="form-control" placeholder="Ex: 8500" required />
+          </div>
+          <div class="form-group">
+            <label for="prod-image">Imagem do Produto (URL)</label>
+            <select id="prod-image" class="form-control">
+              <option value="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=700">Cozinha Planejada Presets</option>
+              <option value="https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=700">Mesa de Madeira Presets</option>
+              <option value="https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=700">Guarda-Roupa Presets</option>
+              <option value="https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=700">Painel TV Presets</option>
+              <option value="https://images.unsplash.com/photo-1544644181-1484b3fdfc62?q=80&w=700">Estante Presets</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-actions-footer">
+          <button type="button" class="btn btn-outline" onclick="closeNewProductForm()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Cadastrar Produto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Global de Referência Original (Print) -->
+  <div class="modal-backdrop hidden" id="modal-reference-overlay" onclick="closeReferenceOverlay()">
+    <div class="reference-overlay-content shadow-premium animate-fade-in" onclick="event.stopPropagation()">
+      <div class="reference-overlay-header">
+        <h3><i data-lucide="image" class="text-orange"></i> Print de Referência Original (Inalterado)</h3>
+        <div class="ref-header-actions">
+          <span class="ref-filename-label" id="ref-image-filename-lbl">media__1779493497641.jpg</span>
+          <button class="btn-close-modal" onclick="closeReferenceOverlay()"><i data-lucide="x"></i></button>
+        </div>
+      </div>
+      <div class="reference-image-body">
+        <img src="" id="reference-overlay-img" alt="Print de Referência" />
+      </div>
+    </div>
+  </div>
+
+  <!-- MÓDULO DE SCRIPTS -->
+  <script src="app.js"></script>
+</body>
+</html>
