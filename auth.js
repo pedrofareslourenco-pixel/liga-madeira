@@ -240,6 +240,12 @@ function clearOTP() {
 
 // ─── Page init ───────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Only execute auth page initialization and redirect checks if we are on the auth page
+  const isAuthPage = window.location.pathname.includes('auth.html') || 
+                     (!window.location.pathname.includes('index.html') && 
+                      (document.getElementById('panel-login') || document.getElementById('register-form')));
+  if (!isAuthPage) return;
+
   // If already logged in, go to app
   if (getSession()) {
     window.location.href = 'index.html';
