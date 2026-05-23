@@ -11,12 +11,36 @@ const SESSION_KEY      = 'lm_session';
 const OTP_KEY          = 'lm_otp_pending';
 const TOKEN_EXPIRY_MS  = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-// ─── Utility: SHA-256 via SubtleCrypto ───────────────────────────────────────
+// ─── Memory Fallbacks for Sandboxed / local file:// Contexts ─────────────────
+window._mock_auth_db = window._mock_auth_db || null;
+window._mock_session = window._mock_session || null;
+window._mock_otp     = window._mock_otp || null;
+
+// ─── Utility: SHA-256 via SubtleCrypto (with pure JS fallback) ───────────────
 async function sha256(message) {
-  const msgBuffer = new TextEncoder().encode(message);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  if (typeof crypto !== 'undefined' && crypto && crypto.subtle) {
+    try {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      console.warn("Crypto.subtle failed, using pure JS hashing fallback", e);
+    }
+  }
+
+  // Pure JS Fallback for non-secure contexts (e.g. file:// protocol)
+  let hash = 0;
+  for (let i = 0; i < message.length; i++) {
+    const char = message.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  let hex = Math.abs(hash).toString(16).padStart(8, '0');
+  while (hex.length < 64) {
+    hex += Math.abs(hash ^ (hex.length * 997)).toString(16).padStart(8, '0');
+  }
+  return hex.slice(0, 64);
 }
 
 // ─── Utility: base64url encode/decode ────────────────────────────────────────
@@ -58,11 +82,19 @@ function parseToken(token) {
 
 // ─── User Database ────────────────────────────────────────────────────────────
 function getAuthDB() {
-  try { return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)) || { users: [] }; }
-  catch { return { users: [] }; }
+  try { 
+    return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)) || window._mock_auth_db || { users: [] }; 
+  } catch { 
+    return window._mock_auth_db || { users: [] }; 
+  }
 }
 function saveAuthDB(db) {
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(db));
+  try {
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(db));
+  } catch (e) {
+    console.warn("Storage write failed. Using memory fallback.", e);
+  }
+  window._mock_auth_db = db;
 }
 
 function findUserByEmail(email) {
@@ -120,22 +152,37 @@ function markUserVerified(email) {
 // ─── Session Management ───────────────────────────────────────────────────────
 async function startSession(user) {
   const token = await generateToken(user);
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ token, userId: user.id }));
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ token, userId: user.id }));
+  } catch (e) {
+    console.warn("Storage write failed. Using memory fallback for session.", e);
+  }
+  window._mock_session = { token, userId: user.id };
   return token;
 }
 
 function getSession() {
   try {
-    const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY)) || window._mock_session;
     if (!s) return null;
     const payload = parseToken(s.token);
     if (!payload) { endSession(); return null; }
     return { ...s, ...payload };
-  } catch { return null; }
+  } catch { 
+    if (window._mock_session) {
+      const payload = parseToken(window._mock_session.token);
+      if (!payload) { endSession(); return null; }
+      return { ...window._mock_session, ...payload };
+    }
+    return null; 
+  }
 }
 
 function endSession() {
-  localStorage.removeItem(SESSION_KEY);
+  try {
+    localStorage.removeItem(SESSION_KEY);
+  } catch {}
+  window._mock_session = null;
 }
 
 // ─── Route Protection (call on index.html load) ───────────────────────────────
@@ -154,21 +201,38 @@ function generateOTP() {
 }
 
 function storeOTP(email, code, type = 'verify') {
-  localStorage.setItem(OTP_KEY, JSON.stringify({
+  const otpData = {
     email, code, type,
     expires: Date.now() + 10 * 60 * 1000 // 10 min
-  }));
+  };
+  try {
+    localStorage.setItem(OTP_KEY, JSON.stringify(otpData));
+  } catch (e) {
+    console.warn("Storage write failed. Using memory fallback for OTP.", e);
+  }
+  window._mock_otp = otpData;
 }
 
 function getStoredOTP() {
   try {
-    const d = JSON.parse(localStorage.getItem(OTP_KEY));
-    if (!d || d.expires < Date.now()) { localStorage.removeItem(OTP_KEY); return null; }
+    const d = JSON.parse(localStorage.getItem(OTP_KEY)) || window._mock_otp;
+    if (!d || d.expires < Date.now()) { clearOTP(); return null; }
     return d;
-  } catch { return null; }
+  } catch { 
+    if (window._mock_otp) {
+      if (window._mock_otp.expires < Date.now()) { clearOTP(); return null; }
+      return window._mock_otp;
+    }
+    return null; 
+  }
 }
 
-function clearOTP() { localStorage.removeItem(OTP_KEY); }
+function clearOTP() { 
+  try {
+    localStorage.removeItem(OTP_KEY); 
+  } catch {}
+  window._mock_otp = null;
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // UI LOGIC
