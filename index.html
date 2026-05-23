@@ -22,6 +22,12 @@
 
   <!-- Estilos Customizados -->
   <link rel="stylesheet" href="style.css" />
+  
+  <!-- Autenticação Obrigatória -->
+  <script src="auth.js"></script>
+  <script>
+    requireAuth();
+  </script>
 </head>
 <body>
 
@@ -61,6 +67,13 @@
         <i data-lucide="clock"></i>
         <span id="live-time">Carregando...</span>
       </div>
+      <!-- Menu do Usuário Logado -->
+      <div class="user-profile-menu" style="display: flex; align-items: center; gap: 10px; margin-left: 15px; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 15px;">
+        <span id="header-user-name" style="font-size: 13px; font-weight: 600; color: white;">Carregando...</span>
+        <button class="btn-logout-header" onclick="endSession(); window.location.href='auth.html';" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;">
+          <i data-lucide="log-out" style="width: 12px; height: 12px;"></i> Sair
+        </button>
+      </div>
     </div>
   </header>
 
@@ -88,21 +101,41 @@
       <!-- Navigation Menu -->
       <nav class="sidebar-nav">
         <a href="#" class="nav-item active" onclick="navigate('candidatos', event)" id="nav-candidatos">
-          <i data-lucide="users"></i>
-          <span>Candidatos</span>
+          <i data-lucide="layout-grid"></i>
+          <span>Painel Geral</span>
         </a>
-        <a href="#" class="nav-item" onclick="navigate('venda-custo', event)" id="nav-venda-custo">
-          <i data-lucide="shopping-cart"></i>
-          <span>Venda e Custo</span>
+        <a href="#" class="nav-item" onclick="navigate('perfil', event)" id="nav-perfil">
+          <i data-lucide="user"></i>
+          <span>Meu Perfil</span>
+        </a>
+        <a href="#" class="nav-item" onclick="navigate('feed', event)" id="nav-feed">
+          <i data-lucide="rss"></i>
+          <span>Feed da Comunidade</span>
+        </a>
+        <a href="#" class="nav-item" onclick="navigate('chat', event)" id="nav-chat">
+          <i data-lucide="message-square"></i>
+          <span>Canal de Comunicação</span>
         </a>
         <a href="#" class="nav-item" onclick="navigate('calendario', event)" id="nav-calendario">
           <i data-lucide="calendar"></i>
-          <span>Calendário e Carga Horária</span>
+          <span>Calendário e Carga</span>
           <span class="alert-count-pill" id="schedule-alert-count">3</span>
+        </a>
+        <a href="#" class="nav-item" onclick="navigate('venda-custo', event)" id="nav-venda-custo">
+          <i data-lucide="line-chart"></i>
+          <span>Dashboard Financeiro</span>
+        </a>
+        <a href="#" class="nav-item" onclick="navigate('organizacao', event)" id="nav-organizacao">
+          <i data-lucide="check-square"></i>
+          <span>Organização Pessoal</span>
+        </a>
+        <a href="#" class="nav-item" onclick="navigate('ranking', event)" id="nav-ranking">
+          <i data-lucide="trophy"></i>
+          <span>Ranking Liga</span>
         </a>
         <a href="#" class="nav-item" onclick="navigate('meus-produtos', event)" id="nav-meus-produtos">
           <i data-lucide="package"></i>
-          <span>Meus Produtos</span>
+          <span>Catálogo de Produtos</span>
         </a>
       </nav>
 
@@ -670,6 +703,293 @@
             
             <div class="product-actions mt-20">
               <button class="btn btn-outline" onclick="openNewProductForm()"><i data-lucide="plus"></i> Cadastrar Outro Produto</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      </section>
+
+      <!-- ==============================================
+           TELA: FEED DA COMUNIDADE (Novo Módulo)
+           ============================================== -->
+      <section id="panel-feed" class="content-panel">
+        <div class="panel-header-desc">
+          <div class="panel-header-title-row">
+            <h2>Feed da Comunidade Fornecedora</h2>
+            <span class="status-badge"><i data-lucide="users"></i> Integrado</span>
+          </div>
+          <p>Acompanhe atualizações, fotos de projetos reais concluídos e troque experiências com outros artesãos da rede.</p>
+        </div>
+
+        <div class="feed-layout">
+          <!-- Feed Main Stream -->
+          <div class="feed-main-stream">
+            <!-- Feed Composer -->
+            <div class="feed-composer">
+              <div class="feed-composer-header">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop" class="composer-avatar" id="feed-composer-avatar" alt="Avatar"/>
+                <strong id="feed-composer-name">Carlos Eduardo</strong>
+              </div>
+              <textarea id="feed-composer-text" rows="3" placeholder="O que você está projetando hoje? Compartilhe com a comunidade..."></textarea>
+              <div class="feed-composer-actions">
+                <div style="display: flex; gap: 15px;">
+                  <button type="button" class="btn-media-picker" onclick="selectFeedPresetImage()">
+                    <i data-lucide="image"></i> Anexar Foto de Projeto
+                  </button>
+                  <span id="selected-image-indicator" style="font-size: 11px; color: var(--color-orange); font-weight: 600; display: none;">Foto Selecionada!</span>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="publishFeedPost()">Publicar</button>
+              </div>
+            </div>
+
+            <!-- Feed Posts Stream Container -->
+            <div class="feed-posts-list" id="feed-posts-container">
+              <!-- Dynamically rendered via app.js -->
+            </div>
+          </div>
+
+          <!-- Feed Sidebar Widget -->
+          <div class="feed-sidebar-widgets">
+            <div class="card shadow-premium" style="background: white; border: 1px solid var(--color-border); border-radius: var(--border-radius-md); padding: 20px;">
+              <h3 style="font-size: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><i data-lucide="award" class="text-orange"></i> Em Destaque</h3>
+              <p style="font-size: 13px; color: var(--color-wood-medium); margin-bottom: 15px;">Marceneiros em destaque esta semana pelo volume de postagens e avaliações positivas.</p>
+              
+              <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" alt=""/>
+                  <div>
+                    <h4 style="font-size: 12px; font-weight: 700;">Roberto Silveira</h4>
+                    <span style="font-size: 10px; color: var(--color-orange);">5.0 ★ (12 projetos)</span>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" alt=""/>
+                  <div>
+                    <h4 style="font-size: 12px; font-weight: 700;">Mariana Albuquerque</h4>
+                    <span style="font-size: 10px; color: var(--color-orange);">4.8 ★ (19 projetos)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           TELA: CANAL DE COMUNICAÇÃO (Chat de Vendas)
+           ============================================== -->
+      <section id="panel-chat" class="content-panel">
+        <div class="panel-header-desc">
+          <div class="panel-header-title-row">
+            <h2>Canal de Comunicação Integrado</h2>
+            <span class="status-badge online"><span class="pulse-dot"></span> Chat Online</span>
+          </div>
+          <p>Converse diretamente com seus clientes, envie atualizações de status de pedidos e otimize a comunicação.</p>
+        </div>
+
+        <div class="chat-layout">
+          <!-- Chat Contacts Sidebar -->
+          <div class="chat-sidebar">
+            <div class="chat-sidebar-header">
+              Conversas Recentes
+            </div>
+            <div class="chat-contacts" id="chat-contacts-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Chat Conversation Main Area -->
+          <div class="chat-main">
+            <div class="chat-main-header" id="chat-active-header">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150" class="contact-avatar" alt=""/>
+              <div>
+                <h4 id="chat-active-name">Selecione uma conversa</h4>
+                <span style="font-size: 11px; color: var(--color-orange);" id="chat-active-status">Online</span>
+              </div>
+            </div>
+
+            <!-- Chat Messages Scroll Container -->
+            <div class="chat-messages" id="chat-messages-container">
+              <!-- Messages -->
+            </div>
+
+            <!-- Chat Send Input Form -->
+            <form class="chat-composer" onsubmit="handleSendChatMessage(event)">
+              <input type="text" id="chat-message-input" placeholder="Digite uma mensagem..." autocomplete="off" required />
+              <button type="submit" class="btn btn-primary" style="padding: 10px 20px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="send"></i> Enviar
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           TELA: ORGANIZAÇÃO PESSOAL (Kanban & Notas)
+           ============================================== -->
+      <section id="panel-organizacao" class="content-panel">
+        <div class="panel-header-desc">
+          <div class="panel-header-title-row">
+            <h2>Organização Pessoal e Produtividade</h2>
+            <button class="btn btn-primary btn-sm" onclick="addNewKanbanTask()"><i data-lucide="plus"></i> Nova Tarefa</button>
+          </div>
+          <p>Gerencie seu fluxo de trabalho através de um quadro Kanban completo e salve anotações rápidas com auto-save.</p>
+        </div>
+
+        <!-- Kanban Board -->
+        <div class="kanban-board">
+          <!-- Backlog -->
+          <div class="kanban-column">
+            <div class="kanban-column-header">
+              <h4>A Fazer</h4>
+              <span id="count-todo">0</span>
+            </div>
+            <div class="kanban-card-list" id="kanban-list-todo">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- In Progress -->
+          <div class="kanban-column">
+            <div class="kanban-column-header">
+              <h4>Em Progresso</h4>
+              <span id="count-doing">0</span>
+            </div>
+            <div class="kanban-card-list" id="kanban-list-doing">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Done -->
+          <div class="kanban-column">
+            <div class="kanban-column-header">
+              <h4>Concluído</h4>
+              <span id="count-done">0</span>
+            </div>
+            <div class="kanban-card-list" id="kanban-list-done">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <div class="org-row-2">
+          <!-- Personal Notes -->
+          <div class="personal-notes-box">
+            <h4><i data-lucide="edit-3" class="text-orange"></i> Bloco de Notas Integrado</h4>
+            <p style="font-size: 12px; color: var(--color-wood-medium); margin-bottom: 12px;">Suas notas são salvas localmente no localStorage a cada alteração.</p>
+            <textarea id="personal-notes-textarea" rows="8" placeholder="Digite ideias de projetos, medidas importantes ou anotações gerais..." oninput="savePersonalNotes()"></textarea>
+            <span id="autosave-status" style="font-size: 11px; color: var(--color-green); font-weight: 700; margin-top: 6px; display: block; opacity: 0; transition: 0.3s;"><i data-lucide="check" style="width:12px;height:12px;vertical-align:middle;"></i> Salvo localmente</span>
+          </div>
+
+          <!-- Quick Reminders -->
+          <div class="quick-reminders-box">
+            <h4><i data-lucide="bell" class="text-orange"></i> Lembretes e Carga Diária</h4>
+            <p style="font-size: 12px; color: var(--color-wood-medium); margin-bottom: 15px;">Seus compromissos de hoje e tarefas urgentes organizados cronologicamente.</p>
+            <div style="display: flex; flex-direction: column;" id="quick-reminders-list">
+              <!-- Reminders -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           TELA: RANKING LIGA (Desempenho Geral)
+           ============================================== -->
+      <section id="panel-ranking" class="content-panel">
+        <div class="panel-header-desc">
+          <div class="panel-header-title-row">
+            <h2>Ranking da Liga Madeira</h2>
+            <span class="status-badge"><i data-lucide="award"></i> Atualizado</span>
+          </div>
+          <p>Confira a classificação oficial baseada em volume de vendas, notas de avaliação e pontualidade física na entrega.</p>
+        </div>
+
+        <!-- Ranking Hero Stats -->
+        <div class="ranking-hero">
+          <div class="ranking-hero-content">
+            <h3>Sua Posição na Liga</h3>
+            <p>Você está no grupo elite com status <strong class="text-orange">VIP Gold</strong>. Continue entregando com pontualidade para alcançar o primeiro lugar!</p>
+            <div style="margin-top: 15px; display: flex; gap: 20px;">
+              <div>
+                <span style="font-size: 11px; opacity: 0.75; display: block;">Média de Vendas</span>
+                <strong style="font-size: 18px;">R$ 68.000 /mês</strong>
+              </div>
+              <div>
+                <span style="font-size: 11px; opacity: 0.75; display: block;">Pontuação Geral</span>
+                <strong style="font-size: 18px;">4,925 pts</strong>
+              </div>
+            </div>
+          </div>
+          <div class="ranking-top-medals">
+            <div class="medal-col second">
+              <div class="icon">🥈</div>
+              <span>Marcos</span>
+            </div>
+            <div class="medal-col first">
+              <div class="icon">🥇</div>
+              <span>Você</span>
+            </div>
+            <div class="medal-col third">
+              <div class="icon">🥉</div>
+              <span>Patrícia</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ranking Table -->
+        <div class="ranking-table-box">
+          <h3 style="font-size: 16px; margin-bottom: 15px;">Tabela Geral de Classificação</h3>
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th>Posição</th>
+                <th>Parceiro</th>
+                <th>Vendas Concluídas</th>
+                <th>Comissão Gerada</th>
+                <th>Avaliação Média</th>
+                <th>Selo Categoria</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Ranking Stats Row -->
+        <div class="ranking-stats">
+          <div class="ranking-chart-box">
+            <h3 style="font-size: 15px; margin-bottom: 12px;"><i data-lucide="bar-chart-3" class="text-orange"></i> Progresso Mensal de Vendas</h3>
+            <div style="height: 220px; position: relative;">
+              <canvas id="rankingProgressChart"></canvas>
+            </div>
+          </div>
+          <div class="ranking-achievements-box">
+            <h3 style="font-size: 15px; margin-bottom: 12px;"><i data-lucide="shield" class="text-orange"></i> Suas Conquistas</h3>
+            
+            <div class="achievement-badge-card">
+              <div class="achievement-icon">🏆</div>
+              <div class="achievement-info">
+                <h5>Líder de Vendas</h5>
+                <p>Alcançou mais de R$ 50k em vendas este mês.</p>
+              </div>
+            </div>
+
+            <div class="achievement-badge-card">
+              <div class="achievement-icon">⚡</div>
+              <div class="achievement-info">
+                <h5>Otimizador IA</h5>
+                <p>Utilizou o otimizador de rotas 5 vezes.</p>
+              </div>
+            </div>
+
+            <div class="achievement-badge-card locked">
+              <div class="achievement-icon">🔒</div>
+              <div class="achievement-info">
+                <h5>Pontualidade de Platina</h5>
+                <p>100% de entregas no prazo durante 3 meses.</p>
+              </div>
             </div>
           </div>
         </div>
