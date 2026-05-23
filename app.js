@@ -74,7 +74,84 @@ const INITIAL_DB = {
     { rank: 1, name: 'Joana D\'Arc (Você)', sales: 68000, comm: 4250, status: 'VIP Gold' },
     { rank: 2, name: 'Marcos Silva', sales: 55000, comm: 3300, status: 'VIP Silver' },
     { rank: 3, name: 'Patrícia Lima', sales: 42000, comm: 2520, status: 'Bronze' }
-  ]
+  ],
+  
+  feed: [
+    {
+      id: 'feed_1',
+      authorName: 'Mariana Albuquerque',
+      authorTitle: 'Designer de Interiores',
+      authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150',
+      time: 'Há 2 horas',
+      content: 'Finalizei a renderização 3D deste closet sob medida. Usando tons amadeirados quentes combinados com perfis em LED embutidos. O cliente adorou a proposta!',
+      media: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=700',
+      likes: 12,
+      likedByMe: false,
+      comments: [
+        { author: 'Carlos Eduardo', text: 'Excelente trabalho, Mariana! As cores ficaram muito harmônicas.' }
+      ]
+    },
+    {
+      id: 'feed_2',
+      authorName: 'Roberto Silveira',
+      authorTitle: 'Especialista em Madeira Maciça',
+      authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150',
+      time: 'Há 1 dia',
+      content: 'Mesa rústica entregue hoje. Tampo único de Jatobá maciço com 5cm de espessura. Trabalho pesado de lixamento e selagem, mas o resultado compensa!',
+      media: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=700',
+      likes: 24,
+      likedByMe: false,
+      comments: []
+    }
+  ],
+  
+  chats: {
+    activeContactId: 'mariana',
+    contacts: {
+      mariana: {
+        id: 'mariana',
+        name: 'Mariana Albuquerque',
+        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150',
+        title: 'Designer de Interiores',
+        online: true,
+        messages: [
+          { sender: 'received', text: 'Olá Carlos, você tem disponibilidade para medir a cozinha da cliente Laura amanhã?', time: '10:14' },
+          { sender: 'sent', text: 'Olá Mariana! Tenho sim, podemos marcar às 14:30. O que acha?', time: '10:18' },
+          { sender: 'received', text: 'Perfeito, vou confirmar com ela e te aviso aqui.', time: '10:20' }
+        ]
+      },
+      roberto: {
+        id: 'roberto',
+        name: 'Roberto Silveira',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=150',
+        title: 'Especialista em Madeira',
+        online: false,
+        messages: [
+          { sender: 'received', text: 'Carlos, sobrou um pouco de verniz náutico do seu último projeto?', time: 'Ontem' },
+          { sender: 'sent', text: 'Opa Roberto, sobrou meia lata sim. Se quiser passar aqui para pegar, está à disposição.', time: 'Ontem' }
+        ]
+      },
+      arthur: {
+        id: 'arthur',
+        name: 'Arthur Ramos (Cliente)',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150',
+        title: 'Cliente Final',
+        online: true,
+        messages: [
+          { sender: 'received', text: 'Boa tarde! Qual é o prazo estimado para a entrega final do painel?', time: '13:40' },
+          { sender: 'sent', text: 'Boa tarde Arthur! A produção está no cronograma, pretendemos entregar na próxima semana.', time: '13:45' }
+        ]
+      }
+    }
+  },
+  
+  kanban: [
+    { id: 'k_1', title: 'Medição da Sala Laura', desc: 'Confirmar medidas finais para produção do painel.', status: 'todo', tag: 'urgente' },
+    { id: 'k_2', title: 'Comprar Corrediças Telescópicas', desc: 'Adquirir 12 pares reforçados de 45cm.', status: 'doing', tag: 'normal' },
+    { id: 'k_3', title: 'Lixamento Mesa Arthur', desc: 'Lixamento final grão 320 concluído.', status: 'done', tag: 'normal' }
+  ],
+  
+  personalNotes: 'Ideias de projetos futuros:\n1. Criado-mudo suspenso com carregador por indução embutido no tampo.\n2. Prateleira flutuante invisível com canaletas para fita de LED.\n3. Mesa lateral usando fatias redondas (bolachas) de madeira tratada com resina epóxi azul.'
 };
 
 let db = {};
@@ -90,14 +167,38 @@ function initDatabase() {
   if (stored) {
     try {
       db = JSON.parse(stored);
-      // Garantir compatibilidade em caso de campos novos
       db.suppliers = db.suppliers || INITIAL_DB.suppliers;
+      db.feed = db.feed || INITIAL_DB.feed;
+      db.chats = db.chats || INITIAL_DB.chats;
+      db.kanban = db.kanban || INITIAL_DB.kanban;
+      db.personalNotes = db.personalNotes || INITIAL_DB.personalNotes;
     } catch (e) {
       db = JSON.parse(JSON.stringify(INITIAL_DB));
     }
   } else {
     db = JSON.parse(JSON.stringify(INITIAL_DB));
     saveToStorage();
+  }
+
+  // Sincronizar usuário logado do auth.js
+  if (typeof getSession === 'function') {
+    const session = getSession();
+    if (session) {
+      if (!db.suppliers[session.sub]) {
+        db.suppliers[session.sub] = {
+          id: session.sub,
+          name: session.name,
+          title: session.role === 'marceneiro' ? 'Marceneiro Master' : (session.role === 'revendedor' ? 'Revendedor Especialista' : 'Fabricante Parceiro'),
+          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=400&auto=format&fit=crop',
+          bio: 'Fornecedor cadastrado na plataforma Liga Madeira. Especialista em co-criação de projetos residenciais e comerciais premium.',
+          rating: 5.0,
+          initials: session.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
+          badges: ['verified', 'premium']
+        };
+        db.selectedSupplierId = session.sub;
+        saveToStorage();
+      }
+    }
   }
 }
 
@@ -198,7 +299,7 @@ function navigate(panelId, event) {
     navItem.classList.add('active');
   }
   
-  if (db.activeRole === 'supplier' && ['candidatos', 'venda-custo', 'calendario', 'meus-produtos'].includes(panelId)) {
+  if (db.activeRole === 'supplier' && ['candidatos', 'venda-custo', 'calendario', 'meus-produtos', 'feed', 'chat', 'organizacao', 'ranking', 'perfil'].includes(panelId)) {
     db.activePanel = panelId;
     saveToStorage();
   }
@@ -213,6 +314,20 @@ function navigate(panelId, event) {
   if (panelId === 'calendario') {
     renderCalendarWidget();
     renderCommitmentsTimeline();
+  }
+
+  // Novos Renders dos Painéis Adicionados
+  if (panelId === 'feed') {
+    renderFeed();
+  }
+  if (panelId === 'chat') {
+    renderChat();
+  }
+  if (panelId === 'organizacao') {
+    renderOrganizacao();
+  }
+  if (panelId === 'ranking') {
+    renderRanking();
   }
 }
 
@@ -1273,6 +1388,16 @@ function initApp() {
   initDatabase();
   startLiveTime();
   
+  // Sincronizar cabeçalho com usuário logado
+  if (typeof getSession === 'function') {
+    const session = getSession();
+    if (session) {
+      db.selectedSupplierId = session.sub;
+      const headerName = document.getElementById('header-user-name');
+      if (headerName) headerName.textContent = session.name;
+    }
+  }
+
   // Renderizadores Iniciais
   renderSupplierBadges(db.suppliers[db.selectedSupplierId]);
   renderCalendarWidget();
@@ -1511,6 +1636,530 @@ function disconnectGitHubRepository() {
   renderGitHubIntegration();
   showToast('Repositório GitHub desconectado.', 'unlink');
 }
+
+// ==========================================================================
+// LIGA MADEIRA — Feed, Chat, Organização & Ranking Modules (JS Engine)
+// ==========================================================================
+
+// ─── Feed de Notícias ────────────────────────────────────────────────────────
+let feedPresetImageIndex = 0;
+const feedPresets = [
+  'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=700',
+  'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=700',
+  'https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=700',
+  'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=700'
+];
+let currentSelectedFeedImage = null;
+
+function selectFeedPresetImage() {
+  currentSelectedFeedImage = feedPresets[feedPresetImageIndex];
+  feedPresetImageIndex = (feedPresetImageIndex + 1) % feedPresets.length;
+  const indicator = document.getElementById('selected-image-indicator');
+  if (indicator) {
+    indicator.style.display = 'inline';
+    indicator.textContent = `Foto de Projeto Anexada!`;
+  }
+  showToast('Imagem de projeto anexada com sucesso!', 'image');
+}
+
+function renderFeed() {
+  const container = document.getElementById('feed-posts-container');
+  if (!container) return;
+  
+  // Sincronizar cabeçalho com usuário logado
+  if (typeof getSession === 'function') {
+    const session = getSession();
+    if (session) {
+      const avatarImg = document.getElementById('feed-composer-avatar');
+      const nameLabel = document.getElementById('feed-composer-name');
+      if (avatarImg) avatarImg.src = db.suppliers[session.sub]?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150';
+      if (nameLabel) nameLabel.textContent = session.name;
+    }
+  }
+
+  container.innerHTML = '';
+  db.feed.forEach(post => {
+    const card = document.createElement('div');
+    card.className = 'feed-post-card animate-fade-in';
+    
+    let commentsHtml = '';
+    post.comments.forEach(c => {
+      commentsHtml += `
+        <div class="comment-item">
+          <strong>${c.author}:</strong> <span>${c.text}</span>
+        </div>
+      `;
+    });
+
+    const isLiked = post.likedByMe ? 'liked' : '';
+
+    card.innerHTML = `
+      <div class="feed-post-header">
+        <div class="feed-post-author">
+          <img src="${post.authorAvatar}" class="composer-avatar" alt=""/>
+          <div class="feed-post-author-info">
+            <h4>${post.authorName}</h4>
+            <span>${post.authorTitle}</span>
+          </div>
+        </div>
+        <span class="feed-post-time">${post.time}</span>
+      </div>
+      <div class="feed-post-content">
+        <p>${post.content}</p>
+      </div>
+      ${post.media ? `<img src="${post.media}" class="feed-post-media" alt="Projeto"/>` : ''}
+      <div class="feed-post-footer">
+        <button class="btn-post-action ${isLiked}" onclick="likeFeedPost('${post.id}')">
+          <i data-lucide="heart" style="width:16px;height:16px;"></i> <span>Curtir (${post.likes})</span>
+        </button>
+        <button class="btn-post-action" onclick="focusCommentInput('${post.id}')">
+          <i data-lucide="message-circle" style="width:16px;height:16px;"></i> Comentar (${post.comments.length})
+        </button>
+      </div>
+      
+      <div class="post-comments-section">
+        <div class="comments-list" id="comments-${post.id}">
+          ${commentsHtml || '<span style="font-size:11px;color:rgba(74,23,0,0.5);">Nenhum comentário ainda.</span>'}
+        </div>
+        <div class="comment-composer">
+          <input type="text" id="comment-input-${post.id}" placeholder="Escreva um comentário..." onkeydown="handleCommentKey(event, '${post.id}')" />
+          <button onclick="submitComment('${post.id}')">Enviar</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+  
+  lucide.createIcons();
+}
+
+function publishFeedPost() {
+  const textEl = document.getElementById('feed-composer-text');
+  const text = textEl.value.trim();
+  if (!text) {
+    showToast('Escreva alguma coisa antes de publicar!', 'alert-triangle');
+    return;
+  }
+  const session = getSession() || { name: 'Visitante', sub: 'carlos', role: 'marceneiro' };
+  const userDetails = db.suppliers[session.sub];
+
+  const newPost = {
+    id: 'feed_' + Date.now(),
+    authorName: session.name,
+    authorTitle: userDetails ? userDetails.title : 'Artesão da Rede',
+    authorAvatar: userDetails ? userDetails.avatar : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=150',
+    time: 'Agora mesmo',
+    content: text,
+    media: currentSelectedFeedImage,
+    likes: 0,
+    likedByMe: false,
+    comments: []
+  };
+
+  db.feed.unshift(newPost);
+  saveToStorage();
+  
+  textEl.value = '';
+  currentSelectedFeedImage = null;
+  const indicator = document.getElementById('selected-image-indicator');
+  if (indicator) indicator.style.display = 'none';
+
+  renderFeed();
+  showToast('Publicação enviada para o feed da comunidade!', 'check-circle');
+}
+
+function likeFeedPost(postId) {
+  const post = db.feed.find(p => p.id === postId);
+  if (!post) return;
+  if (post.likedByMe) {
+    post.likes--;
+    post.likedByMe = false;
+  } else {
+    post.likes++;
+    post.likedByMe = true;
+  }
+  saveToStorage();
+  renderFeed();
+}
+
+function focusCommentInput(postId) {
+  document.getElementById(`comment-input-${postId}`)?.focus();
+}
+
+function handleCommentKey(e, postId) {
+  if (e.key === 'Enter') {
+    submitComment(postId);
+  }
+}
+
+function submitComment(postId) {
+  const input = document.getElementById(`comment-input-${postId}`);
+  const text = input.value.trim();
+  if (!text) return;
+  
+  const post = db.feed.find(p => p.id === postId);
+  if (!post) return;
+
+  const session = getSession() || { name: 'Você' };
+  post.comments.push({
+    author: session.name,
+    text: text
+  });
+
+  saveToStorage();
+  input.value = '';
+  renderFeed();
+  showToast('Comentário enviado!', 'message-square');
+}
+
+// ─── Chat e Comunicação ───────────────────────────────────────────────────────
+function renderChat() {
+  const contactsContainer = document.getElementById('chat-contacts-container');
+  if (!contactsContainer) return;
+  
+  contactsContainer.innerHTML = '';
+  
+  Object.keys(db.chats.contacts).forEach(key => {
+    const contact = db.chats.contacts[key];
+    const isActive = db.chats.activeContactId === key ? 'active' : '';
+    const lastMsg = contact.messages.length > 0 ? contact.messages[contact.messages.length - 1].text : 'Nenhuma mensagem';
+    const isOnline = contact.online ? 'online' : '';
+
+    const div = document.createElement('div');
+    div.className = `chat-contact-item ${isActive}`;
+    div.onclick = () => selectChatContact(key);
+    div.innerHTML = `
+      <div class="contact-avatar-wrap">
+        <img src="${contact.avatar}" class="contact-avatar" alt=""/>
+        <span class="contact-status-dot ${isOnline}"></span>
+      </div>
+      <div class="contact-details">
+        <h4>${contact.name}</h4>
+        <p>${lastMsg}</p>
+      </div>
+    `;
+    contactsContainer.appendChild(div);
+  });
+  
+  // Renderizar mensagens do contato ativo
+  const activeId = db.chats.activeContactId;
+  const activeContact = db.chats.contacts[activeId];
+  const activeHeaderName = document.getElementById('chat-active-name');
+  const activeHeaderImg = document.querySelector('#chat-active-header img');
+  const activeHeaderStatus = document.getElementById('chat-active-status');
+  
+  if (activeContact) {
+    if (activeHeaderName) activeHeaderName.textContent = activeContact.name;
+    if (activeHeaderImg) activeHeaderImg.src = activeContact.avatar;
+    if (activeHeaderStatus) {
+      activeHeaderStatus.textContent = activeContact.online ? 'Online' : 'Offline';
+      activeHeaderStatus.className = activeContact.online ? 'text-orange' : 'text-muted';
+    }
+
+    const messagesContainer = document.getElementById('chat-messages-container');
+    if (messagesContainer) {
+      messagesContainer.innerHTML = '';
+      activeContact.messages.forEach(m => {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${m.sender}`;
+        bubble.innerHTML = `
+          ${m.text}
+          <span class="time">${m.time}</span>
+        `;
+        messagesContainer.appendChild(bubble);
+      });
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+  }
+  lucide.createIcons();
+}
+
+function selectChatContact(contactId) {
+  db.chats.activeContactId = contactId;
+  saveToStorage();
+  renderChat();
+}
+
+function handleSendChatMessage(e) {
+  e.preventDefault();
+  const input = document.getElementById('chat-message-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const activeId = db.chats.activeContactId;
+  const contact = db.chats.contacts[activeId];
+  if (!contact) return;
+
+  const now = new Date();
+  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+  // Adicionar mensagem enviada
+  contact.messages.push({
+    sender: 'sent',
+    text: text,
+    time: timeStr
+  });
+
+  saveToStorage();
+  input.value = '';
+  renderChat();
+
+  // Resposta automática simulada
+  setTimeout(() => {
+    let replyText = 'Entendido! Obrigado pelo retorno. Vou analisar e te respondo em breve.';
+    if (activeId === 'mariana') {
+      replyText = 'Ótimo! Confirmado para amanhã às 14:30. Te vejo na casa da Laura.';
+    } else if (activeId === 'arthur') {
+      replyText = 'Excelente! Fico no aguardo da entrega. O trabalho de vocês é de altíssima qualidade.';
+    }
+    
+    contact.messages.push({
+      sender: 'received',
+      text: replyText,
+      time: timeStr
+    });
+    saveToStorage();
+    renderChat();
+    showToast(`Nova mensagem de ${contact.name}!`, 'message-square');
+  }, 1500);
+}
+
+// ─── Organização Pessoal (Kanban & Notas) ──────────────────────────────────
+function renderOrganizacao() {
+  const todoList = document.getElementById('kanban-list-todo');
+  const doingList = document.getElementById('kanban-list-doing');
+  const doneList = document.getElementById('kanban-list-done');
+  
+  if (!todoList || !doingList || !doneList) return;
+
+  todoList.innerHTML = '';
+  doingList.innerHTML = '';
+  doneList.innerHTML = '';
+
+  let todoCount = 0, doingCount = 0, doneCount = 0;
+
+  db.kanban.forEach(task => {
+    const card = document.createElement('div');
+    card.className = 'kanban-card';
+    card.innerHTML = `
+      <h5>${task.title}</h5>
+      <p>${task.desc}</p>
+      <div class="kanban-card-meta">
+        <span class="kanban-card-tag ${task.tag}">${task.tag}</span>
+        <div class="kanban-card-actions">
+          ${task.status !== 'todo' ? `<button class="btn-card-action" onclick="moveKanbanTask('${task.id}', 'prev')" title="Mover para esquerda"><i data-lucide="chevron-left" style="width:14px;height:14px;"></i></button>` : ''}
+          ${task.status !== 'done' ? `<button class="btn-card-action" onclick="moveKanbanTask('${task.id}', 'next')" title="Mover para direita"><i data-lucide="chevron-right" style="width:14px;height:14px;"></i></button>` : ''}
+          <button class="btn-card-action" onclick="deleteKanbanTask('${task.id}')" title="Excluir"><i data-lucide="trash" style="width:14px;height:14px;color:var(--color-red);"></i></button>
+        </div>
+      </div>
+    `;
+
+    if (task.status === 'todo') {
+      todoList.appendChild(card);
+      todoCount++;
+    } else if (task.status === 'doing') {
+      doingList.appendChild(card);
+      doingCount++;
+    } else if (task.status === 'done') {
+      doneList.appendChild(card);
+      doneCount++;
+    }
+  });
+
+  document.getElementById('count-todo').textContent = todoCount;
+  document.getElementById('count-doing').textContent = doingCount;
+  document.getElementById('count-done').textContent = doneCount;
+
+  // Carregar notas
+  const notesArea = document.getElementById('personal-notes-textarea');
+  if (notesArea) notesArea.value = db.personalNotes;
+
+  // Carregar lembretes
+  renderReminders();
+  lucide.createIcons();
+}
+
+function moveKanbanTask(taskId, direction) {
+  const task = db.kanban.find(t => t.id === taskId);
+  if (!task) return;
+  
+  const states = ['todo', 'doing', 'done'];
+  let idx = states.indexOf(task.status);
+  
+  if (direction === 'next' && idx < 2) idx++;
+  else if (direction === 'prev' && idx > 0) idx--;
+
+  task.status = states[idx];
+  saveToStorage();
+  renderOrganizacao();
+}
+
+function addNewKanbanTask() {
+  const title = prompt('Título da Tarefa:');
+  if (!title) return;
+  const desc = prompt('Descrição:');
+  const tag = confirm('Esta tarefa é urgente?') ? 'urgente' : 'normal';
+
+  const newTask = {
+    id: 'k_' + Date.now(),
+    title: title,
+    desc: desc || '',
+    status: 'todo',
+    tag: tag
+  };
+
+  db.kanban.push(newTask);
+  saveToStorage();
+  renderOrganizacao();
+  showToast('Tarefa adicionada ao quadro Kanban!', 'check-circle');
+}
+
+function deleteKanbanTask(taskId) {
+  if (!confirm('Deseja remover esta tarefa?')) return;
+  db.kanban = db.kanban.filter(t => t.id !== taskId);
+  saveToStorage();
+  renderOrganizacao();
+  showToast('Tarefa removida.', 'trash');
+}
+
+let notesTimeout;
+function savePersonalNotes() {
+  const textarea = document.getElementById('personal-notes-textarea');
+  if (!textarea) return;
+  db.personalNotes = textarea.value;
+  saveToStorage();
+  
+  const statusSpan = document.getElementById('autosave-status');
+  if (statusSpan) {
+    statusSpan.style.opacity = 1;
+    clearTimeout(notesTimeout);
+    notesTimeout = setTimeout(() => { statusSpan.style.opacity = 0; }, 1500);
+  }
+}
+
+function renderReminders() {
+  const container = document.getElementById('quick-reminders-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const todayStr = '2026-05-23';
+  const todays = db.commitments.filter(c => c.date === todayStr);
+
+  if (todays.length === 0) {
+    container.innerHTML = '<span style="font-size:12px;color:rgba(74,23,0,0.5);padding:10px 0;">Nenhum compromisso agendado para hoje.</span>';
+    return;
+  }
+
+  todays.forEach(c => {
+    const item = document.createElement('div');
+    item.className = 'reminder-item';
+    item.innerHTML = `
+      <div class="reminder-info">
+        <i data-lucide="clock" style="width:14px;height:14px;color:var(--color-orange);"></i>
+        <span>Visita Técnica com <strong>${c.client}</strong></span>
+      </div>
+      <span class="reminder-time">${c.time}</span>
+    `;
+    container.appendChild(item);
+  });
+}
+
+// ─── Ranking de Vendas da Liga ───────────────────────────────────────────────
+let rankingChartInstance = null;
+
+function renderRanking() {
+  const tableBody = document.getElementById('ranking-table-body');
+  if (!tableBody) return;
+  
+  tableBody.innerHTML = '';
+  
+  const session = getSession() || { name: 'Você' };
+  
+  const ranks = [
+    { rank: 1, name: 'Roberto Silveira', sales: 78000, comm: 4850, rating: 5.0, badge: 'gold', badgeText: 'Elite Gold', isMe: false, avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100' },
+    { rank: 2, name: session.name, sales: 68000, comm: 4250, rating: 4.9, badge: 'gold', badgeText: 'VIP Gold', isMe: true, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100' },
+    { rank: 3, name: 'Mariana Albuquerque', sales: 55000, comm: 3400, rating: 4.8, badge: 'silver', badgeText: 'Silver Partner', isMe: false, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100' },
+    { rank: 4, name: 'Marcos Silva', sales: 42000, comm: 2520, rating: 4.6, badge: 'bronze', badgeText: 'Bronze Active', isMe: false, avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100' }
+  ];
+
+  ranks.forEach(r => {
+    const tr = document.createElement('tr');
+    if (r.isMe) tr.className = 'highlight-user';
+    
+    tr.innerHTML = `
+      <td><span class="rank-pos">${r.rank}º</span></td>
+      <td>
+        <div class="rank-provider">
+          <img src="${r.avatar}" class="rank-avatar" alt=""/>
+          <strong>${r.name} ${r.isMe ? '(Você)' : ''}</strong>
+        </div>
+      </td>
+      <td><span class="rank-score">R$ ${r.sales.toLocaleString('pt-BR')}</span></td>
+      <td>R$ ${r.comm.toLocaleString('pt-BR')}</td>
+      <td>⭐ ${r.rating.toFixed(1)}</td>
+      <td><span class="badge-reseller ${r.badge}">${r.badgeText}</span></td>
+    `;
+    tableBody.appendChild(tr);
+  });
+  
+  // Renderizar Gráfico de Progresso
+  const chartCanvas = document.getElementById('rankingProgressChart');
+  if (chartCanvas) {
+    if (rankingChartInstance) rankingChartInstance.destroy();
+    
+    rankingChartInstance = new Chart(chartCanvas, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai'],
+        datasets: [
+          {
+            label: 'Seu Faturamento',
+            data: [35000, 48000, 52000, 60000, 68000],
+            borderColor: '#ff5a00',
+            borderWidth: 3,
+            backgroundColor: 'rgba(255, 90, 0, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4
+          },
+          {
+            label: 'Média da Liga',
+            data: [40000, 45000, 47000, 52000, 55000],
+            borderColor: '#4a1700',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: true, labels: { boxWidth: 12, font: { family: 'Plus Jakarta Sans', size: 10 } } } },
+        scales: {
+          y: { grid: { color: 'rgba(74, 23, 0, 0.04)' }, ticks: { font: { size: 9 } } },
+          x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+        }
+      }
+    });
+  }
+}
+
+// Exposição global das funções criadas
+window.selectFeedPresetImage = selectFeedPresetImage;
+window.publishFeedPost       = publishFeedPost;
+window.likeFeedPost          = likeFeedPost;
+window.focusCommentInput     = focusCommentInput;
+window.handleCommentKey      = handleCommentKey;
+window.submitComment         = submitComment;
+window.handleSendChatMessage = handleSendChatMessage;
+window.selectChatContact     = selectChatContact;
+window.moveKanbanTask        = moveKanbanTask;
+window.addNewKanbanTask      = addNewKanbanTask;
+window.deleteKanbanTask      = deleteKanbanTask;
+window.savePersonalNotes     = savePersonalNotes;
 
 // Executar após o carregamento completo do DOM
 window.addEventListener('DOMContentLoaded', () => {
