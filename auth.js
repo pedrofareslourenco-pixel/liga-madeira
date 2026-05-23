@@ -158,6 +158,8 @@ async function startSession(user) {
     console.warn("Storage write failed. Using memory fallback for session.", e);
   }
   window._mock_session = { token, userId: user.id };
+  // Ensure the session is persisted before any navigation occurs.
+  await new Promise(r => setTimeout(r, 200));
   return token;
 }
 
@@ -240,17 +242,22 @@ function clearOTP() {
 
 // ─── Page init ───────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Only execute auth page initialization and redirect checks if we are on the auth page
-  const isAuthPage = window.location.pathname.includes('auth.html') || 
-                     (!window.location.pathname.includes('index.html') && 
-                      (document.getElementById('panel-login') || document.getElementById('register-form')));
-  if (!isAuthPage) return;
-
-  // If already logged in, go to app
-  if (getSession()) {
-    window.location.href = 'index.html';
+  // Skip auth checks on the login/registration page itself
+  if (window.location.pathname.includes('auth.html')) {
+    // Initialize particles and Google modal for the auth page only
+    generateParticles();
+    initGoogleModal();
     return;
   }
+
+  // On protected pages (e.g., index.html), enforce authentication
+  if (!getSession()) {
+    requireAuth(); // redirects to auth.html if no session
+    return;
+  }
+
+  // If session exists, ensure we stay on the app
+  // (no redirect needed; just initialize UI effects)
   generateParticles();
   initGoogleModal();
 });
